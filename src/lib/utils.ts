@@ -39,7 +39,7 @@ export interface BaseboardResult {
 }
 
 export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
-  const { measurements, availableLengths, kerf = 0.125 } = config
+  const {measurements, availableLengths, kerf = 0.125} = config
   const boards: Board[] = []
 
   // Sort available lengths for easy access to max
@@ -84,7 +84,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
         if (boardLength) {
           boards.push({
             boardLength,
-            cuts: [{ id: measurement.id, size: remaining }]
+            cuts: [{id: measurement.id, size: remaining}],
           })
         }
         remaining = 0
@@ -92,7 +92,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
         // Cut a full board's worth
         boards.push({
           boardLength: maxBoardLength,
-          cuts: [{ id: measurement.id, size: maxBoardLength }]
+          cuts: [{id: measurement.id, size: maxBoardLength}],
         })
         remaining -= maxBoardLength
       }
@@ -111,7 +111,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     let fitted = false
     for (const board of boards) {
       if (canFit(board, measurement.size)) {
-        board.cuts.push({ id: measurement.id, size: measurement.size })
+        board.cuts.push({id: measurement.id, size: measurement.size})
         fitted = true
         break
       }
@@ -123,7 +123,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
       if (boardLength) {
         boards.push({
           boardLength,
-          cuts: [{ id: measurement.id, size: measurement.size }]
+          cuts: [{id: measurement.id, size: measurement.size}],
         })
       }
     }
@@ -149,7 +149,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     summary: {
       totalBoards,
       boardCounts,
-      totalWaste
-    }
+      totalWaste,
+    },
   }
 }
