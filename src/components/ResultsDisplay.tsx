@@ -168,15 +168,20 @@ export function ResultsDisplay({results}: ResultsDisplayProps) {
                       100
                     const widthPercent = (cut.size / board.boardLength) * 100
 
+                    const label =
+                      cut.room && cut.wall
+                        ? `${cut.room} - ${cut.wall}`
+                        : cut.room || cut.wall || cut.id
+
                     return (
                       <div
                         key={cutIndex}
-                        className={`absolute h-full ${colorMap.get(cut.id) || 'bg-gray-500'} flex items-center justify-center border-white border-r font-medium text-white text-xs opacity-80`}
+                        className={`absolute flex h-full items-center justify-center border-white border-r font-medium text-white text-xs opacity-80 ${colorMap.get(cut.id) || 'bg-gray-500'}`}
                         style={{
                           left: `${leftPercent}%`,
                           width: `${widthPercent}%`,
                         }}
-                        title={`${cut.id}: ${cut.size}"`}
+                        title={`${label}: ${cut.size}"`}
                       >
                         <span className="truncate px-1">{cut.size}"</span>
                       </div>
@@ -186,16 +191,23 @@ export function ResultsDisplay({results}: ResultsDisplayProps) {
 
                 {/* Cut details */}
                 <div className="pl-2 text-muted-foreground text-xs">
-                  {board.cuts.map((cut, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <div
-                        className={`h-3 w-3 ${colorMap.get(cut.id) || 'bg-gray-500'} rounded`}
-                      />
-                      <span>
-                        {cut.id}: {cut.size}"
-                      </span>
-                    </div>
-                  ))}
+                  {board.cuts.map((cut, idx) => {
+                    const label =
+                      cut.room && cut.wall
+                        ? `${cut.room} - ${cut.wall}`
+                        : cut.room || cut.wall || 'Unlabeled'
+
+                    return (
+                      <div key={idx} className="flex items-center gap-2">
+                        <div
+                          className={`h-3 w-3 rounded ${colorMap.get(cut.id) || 'bg-gray-500'}`}
+                        />
+                        <span>
+                          {label}: {cut.size}"
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )

@@ -23,7 +23,7 @@ const DEFAULT_KERF = 0.125
 export function BaseboardConfigurator() {
   const kerfId = useId()
   const [measurements, setMeasurements] = useState<Measurement[]>([
-    {id: crypto.randomUUID(), size: 0},
+    {id: crypto.randomUUID(), size: 0, room: '', wall: ''},
   ])
   const [availableLengths, setAvailableLengths] = useState<number[]>(
     DEFAULT_BOARD_LENGTHS

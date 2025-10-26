@@ -11,6 +11,8 @@ export function cn(...inputs: ClassValue[]) {
 export interface Measurement {
   id: string
   size: number
+  room?: string
+  wall?: string
 }
 
 export interface BaseboardConfig {
@@ -22,6 +24,8 @@ export interface BaseboardConfig {
 export interface Cut {
   id: string
   size: number
+  room?: string
+  wall?: string
 }
 
 export interface Board {
@@ -88,7 +92,14 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
         if (boardLength) {
           boards.push({
             boardLength,
-            cuts: [{id: measurement.id, size: remaining}],
+            cuts: [
+              {
+                id: measurement.id,
+                size: remaining,
+                room: measurement.room,
+                wall: measurement.wall,
+              },
+            ],
           })
         }
         remaining = 0
@@ -96,7 +107,14 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
         // Cut a full board's worth
         boards.push({
           boardLength: maxBoardLength,
-          cuts: [{id: measurement.id, size: maxBoardLength}],
+          cuts: [
+            {
+              id: measurement.id,
+              size: maxBoardLength,
+              room: measurement.room,
+              wall: measurement.wall,
+            },
+          ],
         })
         remaining -= maxBoardLength
       }
@@ -115,7 +133,12 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     let fitted = false
     for (const board of boards) {
       if (canFit(board, measurement.size)) {
-        board.cuts.push({id: measurement.id, size: measurement.size})
+        board.cuts.push({
+          id: measurement.id,
+          size: measurement.size,
+          room: measurement.room,
+          wall: measurement.wall,
+        })
         fitted = true
         break
       }
@@ -127,7 +150,14 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
       if (boardLength) {
         boards.push({
           boardLength,
-          cuts: [{id: measurement.id, size: measurement.size}],
+          cuts: [
+            {
+              id: measurement.id,
+              size: measurement.size,
+              room: measurement.room,
+              wall: measurement.wall,
+            },
+          ],
         })
       }
     }

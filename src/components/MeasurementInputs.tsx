@@ -2,7 +2,6 @@ import type {Measurement} from '@/lib/utils'
 
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
 
 import {Plus, Trash2} from 'lucide-react'
 
@@ -16,7 +15,10 @@ export function MeasurementInputs({
   onChange,
 }: MeasurementInputsProps) {
   const addMeasurement = () => {
-    onChange([...measurements, {id: crypto.randomUUID(), size: 0}])
+    onChange([
+      ...measurements,
+      {id: crypto.randomUUID(), size: 0, room: '', wall: ''},
+    ])
   }
 
   const removeMeasurement = (id: string) => {
@@ -27,48 +29,84 @@ export function MeasurementInputs({
     onChange(measurements.filter(m => m.id !== id))
   }
 
-  const updateMeasurement = (id: string, size: number) => {
-    onChange(measurements.map(m => (m.id === id ? {...m, size} : m)))
+  const updateMeasurement = (id: string, updates: Partial<Measurement>) => {
+    onChange(measurements.map(m => (m.id === id ? {...m, ...updates} : m)))
   }
 
+  // Group measurements by room
+  const groupedMeasurements = measurements.reduce(
+    (acc, measurement) => {
+      const roomName = measurement.room || 'Unlabeled'
+      if (!acc[roomName]) {
+        acc[roomName] = []
+      }
+      acc[roomName].push(measurement)
+      return acc
+    },
+    {} as Record<string, Measurement[]>
+  )
+
   return (
-    <div className="space-y-4">
-      {measurements.map((measurement, index) => (
-        <div key={measurement.id} className="flex items-center gap-2">
-          <div className="flex-1">
-            <Label
-              htmlFor={`measurement-${measurement.id}`}
-              className="sr-only"
-            >
-              Measurement {index + 1}
-            </Label>
-            <Input
-              id={`measurement-${measurement.id}`}
-              type="number"
-              step="0.25"
-              min="0"
-              placeholder={`Wall ${index + 1} length (inches)`}
-              value={measurement.size || ''}
-              onChange={e =>
-                updateMeasurement(
-                  measurement.id,
-                  parseFloat(e.target.value) || 0
-                )
-              }
-            />
+    <div className="space-y-6">
+      {Object.entries(groupedMeasurements).map(
+        ([roomName, roomMeasurements]) => (
+          <div key={roomName} className="space-y-3">
+            {roomName !== 'Unlabeled' && (
+              <h3 className="font-semibold text-sm">{roomName}</h3>
+            )}
+            <div className="space-y-2">
+              {roomMeasurements.map(measurement => (
+                <div key={measurement.id} className="flex items-center gap-2">
+                  <div className="grid flex-1 grid-cols-3 gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Room"
+                      value={measurement.room || ''}
+                      onChange={e =>
+                        updateMeasurement(measurement.id, {
+                          room: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      type="text"
+                      placeholder="Wall"
+                      value={measurement.wall || ''}
+                      onChange={e =>
+                        updateMeasurement(measurement.id, {
+                          wall: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      type="number"
+                      step="0.25"
+                      min="0"
+                      placeholder="Length"
+                      value={measurement.size || ''}
+                      onChange={e =>
+                        updateMeasurement(measurement.id, {
+                          size: parseFloat(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeMeasurement(measurement.id)}
+                    disabled={measurements.length === 1}
+                    aria-label="Remove measurement"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => removeMeasurement(measurement.id)}
-            disabled={measurements.length === 1}
-            aria-label="Remove measurement"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ))}
+        )
+      )}
 
       <Button
         type="button"
