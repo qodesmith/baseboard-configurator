@@ -19,13 +19,14 @@ import {
 } from '@/components/ui/card'
 import {
   availableLengthsAtom,
+  currentConfigNameAtom,
   DEFAULT_BOARD_LENGTHS,
   DEFAULT_KERF,
   kerfAtom,
   measurementsAtom,
 } from '@/lib/atoms'
 
-import {useSetAtom} from 'jotai'
+import {useAtom, useSetAtom} from 'jotai'
 import {Download, RotateCcw, Save} from 'lucide-react'
 import {useState} from 'react'
 
@@ -36,6 +37,9 @@ export function ConfigurationManager() {
   const setMeasurements = useSetAtom(measurementsAtom)
   const setAvailableLengths = useSetAtom(availableLengthsAtom)
   const setKerf = useSetAtom(kerfAtom)
+  const [currentConfigName, setCurrentConfigName] = useAtom(
+    currentConfigNameAtom
+  )
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [loadDialogOpen, setLoadDialogOpen] = useState(false)
 
@@ -43,6 +47,7 @@ export function ConfigurationManager() {
     setMeasurements([{id: crypto.randomUUID(), size: 0, room: '', wall: ''}])
     setAvailableLengths(DEFAULT_BOARD_LENGTHS)
     setKerf(DEFAULT_KERF)
+    setCurrentConfigName(null)
   }
 
   return (
@@ -55,6 +60,14 @@ export function ConfigurationManager() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {currentConfigName && (
+            <div className="mb-4 rounded-md bg-muted p-3">
+              <p className="text-muted-foreground text-sm">
+                Current configuration:
+              </p>
+              <p className="font-medium">{currentConfigName}</p>
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="default"

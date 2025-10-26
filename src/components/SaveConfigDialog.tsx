@@ -9,9 +9,14 @@ import {
 } from '@/components/ui/dialog'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {availableLengthsAtom, kerfAtom, measurementsAtom} from '@/lib/atoms'
+import {
+  availableLengthsAtom,
+  currentConfigNameAtom,
+  kerfAtom,
+  measurementsAtom,
+} from '@/lib/atoms'
 
-import {useAtomValue} from 'jotai'
+import {useAtom, useAtomValue} from 'jotai'
 import {useId, useState} from 'react'
 
 interface SaveConfigDialogProps {
@@ -31,6 +36,9 @@ export function SaveConfigDialog({open, onOpenChange}: SaveConfigDialogProps) {
   const measurements = useAtomValue(measurementsAtom)
   const availableLengths = useAtomValue(availableLengthsAtom)
   const kerf = useAtomValue(kerfAtom)
+  const [_currentConfigName, setCurrentConfigName] = useAtom(
+    currentConfigNameAtom
+  )
   const [configName, setConfigName] = useState('')
 
   const handleSave = () => {
@@ -45,8 +53,10 @@ export function SaveConfigDialog({open, onOpenChange}: SaveConfigDialogProps) {
       ? JSON.parse(existingConfigs)
       : {}
 
+    const trimmedName = configName.trim()
+
     // Save new configuration
-    configs[configName.trim()] = {
+    configs[trimmedName] = {
       measurements,
       availableLengths,
       kerf,
@@ -54,6 +64,7 @@ export function SaveConfigDialog({open, onOpenChange}: SaveConfigDialogProps) {
     }
 
     localStorage.setItem('baseboard-configs', JSON.stringify(configs))
+    setCurrentConfigName(trimmedName)
 
     // Reset and close
     setConfigName('')

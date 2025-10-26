@@ -215,7 +215,10 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     const waste = calculateTotalWaste(boards)
 
     // Prefer less waste first, then fewer boards as tie-breaker
-    if (waste < minWaste || (waste === minWaste && boards.length < bestBoards.length)) {
+    if (
+      waste < minWaste ||
+      (waste === minWaste && boards.length < bestBoards.length)
+    ) {
       minWaste = waste
       bestBoards = boards
     }
@@ -226,7 +229,11 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
   const allLengthsWaste = calculateTotalWaste(allLengthsBoards)
 
   // Prefer less waste first, then fewer boards as tie-breaker
-  if (allLengthsWaste < minWaste || (allLengthsWaste === minWaste && allLengthsBoards.length < bestBoards.length)) {
+  if (
+    allLengthsWaste < minWaste ||
+    (allLengthsWaste === minWaste &&
+      allLengthsBoards.length < bestBoards.length)
+  ) {
     minWaste = allLengthsWaste
     bestBoards = allLengthsBoards
   }
@@ -244,7 +251,10 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
         const waste = calculateTotalWaste(boards)
 
         // Prefer less waste first, then fewer boards as tie-breaker
-        if (waste < minWaste || (waste === minWaste && boards.length < bestBoards.length)) {
+        if (
+          waste < minWaste ||
+          (waste === minWaste && boards.length < bestBoards.length)
+        ) {
           minWaste = waste
           bestBoards = boards
         }

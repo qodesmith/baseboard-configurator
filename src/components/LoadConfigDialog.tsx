@@ -9,7 +9,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {availableLengthsAtom, kerfAtom, measurementsAtom} from '@/lib/atoms'
+import {
+  availableLengthsAtom,
+  currentConfigNameAtom,
+  kerfAtom,
+  measurementsAtom,
+} from '@/lib/atoms'
 
 import {useSetAtom} from 'jotai'
 import {Trash2} from 'lucide-react'
@@ -31,6 +36,7 @@ export function LoadConfigDialog({open, onOpenChange}: LoadConfigDialogProps) {
   const setMeasurements = useSetAtom(measurementsAtom)
   const setAvailableLengths = useSetAtom(availableLengthsAtom)
   const setKerf = useSetAtom(kerfAtom)
+  const setCurrentConfigName = useSetAtom(currentConfigNameAtom)
   const [configs, setConfigs] = useState<Record<string, SavedConfig>>({})
   const [selectedConfig, setSelectedConfig] = useState<string | null>(null)
 
@@ -59,6 +65,7 @@ export function LoadConfigDialog({open, onOpenChange}: LoadConfigDialogProps) {
     setMeasurements(config.measurements)
     setAvailableLengths(config.availableLengths)
     setKerf(config.kerf)
+    setCurrentConfigName(selectedConfig)
 
     onOpenChange(false)
     setSelectedConfig(null)

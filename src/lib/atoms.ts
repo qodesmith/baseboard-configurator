@@ -14,3 +14,5 @@ export const measurementsAtom = atom<Measurement[]>([
 export const availableLengthsAtom = atom<number[]>(DEFAULT_BOARD_LENGTHS)
 
 export const kerfAtom = atom<number>(DEFAULT_KERF)
+
+export const currentConfigNameAtom = atom<string | null>(null)
