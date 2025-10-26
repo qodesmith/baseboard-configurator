@@ -26,7 +26,7 @@ import {
   measurementsAtom,
 } from '@/lib/atoms'
 
-import {useAtom, useSetAtom} from 'jotai'
+import {useAtom, useAtomValue, useSetAtom} from 'jotai'
 import {Download, RotateCcw, Save} from 'lucide-react'
 import {useState} from 'react'
 
@@ -34,6 +34,9 @@ import {LoadConfigDialog} from './LoadConfigDialog'
 import {SaveConfigDialog} from './SaveConfigDialog'
 
 export function ConfigurationManager() {
+  const measurements = useAtomValue(measurementsAtom)
+  const availableLengths = useAtomValue(availableLengthsAtom)
+  const kerf = useAtomValue(kerfAtom)
   const setMeasurements = useSetAtom(measurementsAtom)
   const setAvailableLengths = useSetAtom(availableLengthsAtom)
   const setKerf = useSetAtom(kerfAtom)
@@ -42,6 +45,41 @@ export function ConfigurationManager() {
   )
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [loadDialogOpen, setLoadDialogOpen] = useState(false)
+  const [overwriteDialogOpen, setOverwriteDialogOpen] = useState(false)
+
+  const handleSaveClick = () => {
+    if (currentConfigName) {
+      setOverwriteDialogOpen(true)
+    } else {
+      setSaveDialogOpen(true)
+    }
+  }
+
+  const handleOverwrite = () => {
+    // Get existing configurations
+    const existingConfigs = localStorage.getItem('baseboard-configs')
+    const configs = existingConfigs ? JSON.parse(existingConfigs) : {}
+
+    if (!currentConfigName) {
+      throw new Error('No config found to overwrite')
+    }
+
+    // Overwrite the current configuration
+    configs[currentConfigName] = {
+      measurements,
+      availableLengths,
+      kerf,
+      timestamp: Date.now(),
+    }
+
+    localStorage.setItem('baseboard-configs', JSON.stringify(configs))
+    setOverwriteDialogOpen(false)
+  }
+
+  const handleSaveAsNew = () => {
+    setOverwriteDialogOpen(false)
+    setSaveDialogOpen(true)
+  }
 
   const handleReset = () => {
     setMeasurements([{id: crypto.randomUUID(), size: 0, room: '', wall: ''}])
@@ -69,11 +107,7 @@ export function ConfigurationManager() {
             </div>
           )}
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => setSaveDialogOpen(true)}
-            >
+            <Button variant="default" size="sm" onClick={handleSaveClick}>
               <Save className="mr-2 h-4 w-4" />
               Save
             </Button>
@@ -120,6 +154,30 @@ export function ConfigurationManager() {
         open={loadDialogOpen}
         onOpenChange={setLoadDialogOpen}
       />
+
+      <AlertDialog
+        open={overwriteDialogOpen}
+        onOpenChange={setOverwriteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save Configuration</AlertDialogTitle>
+            <AlertDialogDescription>
+              You're currently working with "{currentConfigName}". Do you want
+              to overwrite it or save as a new configuration?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button variant="outline" onClick={handleSaveAsNew}>
+              Save as New
+            </Button>
+            <AlertDialogAction onClick={handleOverwrite}>
+              Overwrite
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
