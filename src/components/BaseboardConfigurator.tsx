@@ -1,4 +1,4 @@
-import type {BaseboardResult, Measurement} from '@/lib/utils'
+import type {BaseboardResult} from '@/lib/utils'
 
 import {
   Card,
@@ -9,26 +9,22 @@ import {
 } from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
+import {availableLengthsAtom, kerfAtom, measurementsAtom} from '@/lib/atoms'
 import {optimizeBaseboards} from '@/lib/utils'
 
+import {useAtom} from 'jotai'
 import {useEffect, useId, useState} from 'react'
 
 import {BoardLengthSelector} from './BoardLengthSelector'
+import {ConfigurationManager} from './ConfigurationManager'
 import {MeasurementInputs} from './MeasurementInputs'
 import {ResultsDisplay} from './ResultsDisplay'
 
-const DEFAULT_BOARD_LENGTHS = [96, 120, 144]
-const DEFAULT_KERF = 0.125
-
 export function BaseboardConfigurator() {
   const kerfId = useId()
-  const [measurements, setMeasurements] = useState<Measurement[]>([
-    {id: crypto.randomUUID(), size: 0, room: '', wall: ''},
-  ])
-  const [availableLengths, setAvailableLengths] = useState<number[]>(
-    DEFAULT_BOARD_LENGTHS
-  )
-  const [kerf, setKerf] = useState(DEFAULT_KERF)
+  const [measurements, setMeasurements] = useAtom(measurementsAtom)
+  const [availableLengths, setAvailableLengths] = useAtom(availableLengthsAtom)
+  const [kerf, setKerf] = useAtom(kerfAtom)
   const [results, setResults] = useState<BaseboardResult | null>(null)
 
   // Auto-calculate whenever inputs change
@@ -62,6 +58,9 @@ export function BaseboardConfigurator() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Left Column - Inputs */}
         <div className="space-y-6">
+          {/* Configuration Manager */}
+          <ConfigurationManager />
+
           {/* Measurements Input */}
           <Card>
             <CardHeader>
