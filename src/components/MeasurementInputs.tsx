@@ -161,7 +161,7 @@ export function MeasurementInputs({
                     />
                     <Input
                       type="number"
-                      step="0.25"
+                      step="0.0625"
                       min="0"
                       placeholder="Length (inches)"
                       value={measurement.size || ''}
