@@ -27,7 +27,7 @@ import {
 } from '@/lib/atoms'
 
 import {useAtom, useAtomValue, useSetAtom} from 'jotai'
-import {Download, RotateCcw, Save} from 'lucide-react'
+import {Copy, Download, RotateCcw, Save} from 'lucide-react'
 import {useState} from 'react'
 
 import {LoadConfigDialog} from './LoadConfigDialog'
@@ -46,6 +46,7 @@ export function ConfigurationManager() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [loadDialogOpen, setLoadDialogOpen] = useState(false)
   const [overwriteDialogOpen, setOverwriteDialogOpen] = useState(false)
+  const [exportCopied, setExportCopied] = useState(false)
 
   const handleSaveClick = () => {
     if (currentConfigName) {
@@ -88,6 +89,24 @@ export function ConfigurationManager() {
     setCurrentConfigName(null)
   }
 
+  const handleExportConfig = async () => {
+    const config = {
+      measurements,
+      availableLengths,
+      kerf,
+      ...(currentConfigName && {name: currentConfigName}),
+      exportedAt: new Date().toISOString(),
+    }
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(config, null, 2))
+      setExportCopied(true)
+      setTimeout(() => setExportCopied(false), 2000)
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error)
+    }
+  }
+
   return (
     <>
       <Card>
@@ -118,6 +137,15 @@ export function ConfigurationManager() {
             >
               <Download className="mr-2 h-4 w-4" />
               Load
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportConfig}
+              disabled={!currentConfigName || exportCopied}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              {exportCopied ? 'Copied!' : 'Export'}
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
