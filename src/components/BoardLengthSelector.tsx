@@ -14,10 +14,8 @@ export function BoardLengthSelector({
 }: BoardLengthSelectorProps) {
   const toggleLength = (length: number) => {
     if (selectedLengths.includes(length)) {
-      // Remove if already selected (but keep at least one)
-      if (selectedLengths.length > 1) {
-        onChange(selectedLengths.filter(l => l !== length))
-      }
+      // Remove if already selected
+      onChange(selectedLengths.filter(l => l !== length))
     } else {
       // Add and sort
       onChange([...selectedLengths, length].sort((a, b) => a - b))
@@ -33,9 +31,6 @@ export function BoardLengthSelector({
               id={`length-${length}`}
               checked={selectedLengths.includes(length)}
               onCheckedChange={() => toggleLength(length)}
-              disabled={
-                selectedLengths.length === 1 && selectedLengths.includes(length)
-              }
             />
             <Label
               htmlFor={`length-${length}`}
@@ -48,7 +43,7 @@ export function BoardLengthSelector({
       </div>
 
       <p className="text-muted-foreground text-xs">
-        At least one board length must be selected
+        Select the board lengths available to you
       </p>
     </div>
   )
