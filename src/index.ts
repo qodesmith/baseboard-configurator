@@ -1,4 +1,4 @@
-import {serve} from 'bun'
+import {$, serve} from 'bun'
 import process from 'node:process'
 
 import index from './index.html'
@@ -39,3 +39,13 @@ const server = serve({
     console: true,
   },
 })
+
+const url = `http://localhost:${server.port}`
+const start =
+  process.platform === 'darwin'
+    ? 'open'
+    : process.platform === 'win32'
+      ? 'start'
+      : 'xdg-open'
+
+await $`${{raw: start}} ${{raw: url}}`
