@@ -83,36 +83,6 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
 
   // Sort available lengths
   const sortedLengths = [...availableLengths].sort((a, b) => a - b)
-  const maxBoardLength = sortedLengths.at(-1)
-
-  if (maxBoardLength === undefined) {
-    throw new Error('No valid board lengths available')
-  }
-
-  // Pre-process: handle measurements with splitEvenly flag
-  const processedMeasurements: Measurement[] = []
-
-  for (const measurement of measurements) {
-    // If splitEvenly is enabled and measurement exceeds max board length
-    if (measurement.splitEvenly && measurement.size > maxBoardLength) {
-      // Calculate balanced splits
-      const splits = calculateBalancedSplits(measurement.size, maxBoardLength)
-
-      // Create a new measurement for each split piece (maintaining original ID, room, wall)
-      for (const splitSize of splits) {
-        processedMeasurements.push({
-          id: measurement.id,
-          size: splitSize,
-          room: measurement.room,
-          wall: measurement.wall,
-          // Don't propagate splitEvenly to the pieces
-        })
-      }
-    } else {
-      // Keep measurement as-is
-      processedMeasurements.push(measurement)
-    }
-  }
 
   // Helper: calculate used space on a board
   const calculateUsed = (cuts: Cut[]): number => {
@@ -148,9 +118,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     }
 
     // Sort measurements by size (largest first) for Best Fit Decreasing
-    const sortedMeasurements = [...processedMeasurements].sort(
-      (a, b) => b.size - a.size
-    )
+    const sortedMeasurements = [...measurements].sort((a, b) => b.size - a.size)
 
     // Helper: find best board to open (minimizes waste)
     const findBestNewBoard = (size: number): number | null => {
@@ -170,6 +138,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     }
 
     // Helper: handle oversized measurements that need multiple boards
+    // NOTE: This always uses greedy approach - splitEvenly is handled in post-processing
     const handleOversized = (measurement: Measurement): void => {
       let remaining = measurement.size
 
@@ -321,6 +290,57 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
         ) {
           minWaste = waste
           bestBoards = boards
+        }
+      }
+    }
+  }
+
+  // Post-processing: Apply splitEvenly for oversized measurements
+  // This ensures splitEvenly only affects the specific measurement, not others
+  const maxBoardLength = sortedLengths.at(-1)
+  if (maxBoardLength !== undefined) {
+    for (const measurement of measurements) {
+      if (measurement.splitEvenly && measurement.size > maxBoardLength) {
+        // Remove cuts for this measurement from all boards, keeping other cuts intact
+        for (const board of bestBoards) {
+          board.cuts = board.cuts.filter(cut => cut.id !== measurement.id)
+        }
+
+        // Remove any boards that became empty
+        bestBoards = bestBoards.filter(board => board.cuts.length > 0)
+
+        // Calculate balanced splits
+        const splits = calculateBalancedSplits(measurement.size, maxBoardLength)
+
+        // Create new boards for each balanced split
+        for (const splitSize of splits) {
+          // Find best board size for this split
+          let bestLength: number | null = null
+          let minWaste = Infinity
+
+          for (const length of sortedLengths) {
+            if (splitSize <= length) {
+              const waste = length - splitSize
+              if (waste < minWaste) {
+                minWaste = waste
+                bestLength = length
+              }
+            }
+          }
+
+          if (bestLength) {
+            bestBoards.push({
+              boardLength: bestLength,
+              cuts: [
+                {
+                  id: measurement.id,
+                  size: splitSize,
+                  room: measurement.room,
+                  wall: measurement.wall,
+                },
+              ],
+            })
+          }
         }
       }
     }
