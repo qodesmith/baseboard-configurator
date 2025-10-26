@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import {Button} from '@/components/ui/button'
 import {
   Card,
@@ -29,15 +40,9 @@ export function ConfigurationManager() {
   const [loadDialogOpen, setLoadDialogOpen] = useState(false)
 
   const handleReset = () => {
-    if (
-      confirm(
-        'Are you sure you want to reset all settings to defaults? This will clear your current configuration.'
-      )
-    ) {
-      setMeasurements([{id: crypto.randomUUID(), size: 0, room: '', wall: ''}])
-      setAvailableLengths(DEFAULT_BOARD_LENGTHS)
-      setKerf(DEFAULT_KERF)
-    }
+    setMeasurements([{id: crypto.randomUUID(), size: 0, room: '', wall: ''}])
+    setAvailableLengths(DEFAULT_BOARD_LENGTHS)
+    setKerf(DEFAULT_KERF)
   }
 
   return (
@@ -67,15 +72,29 @@ export function ConfigurationManager() {
               <Download className="mr-2 h-4 w-4" />
               Load
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReset}
-              className="ml-auto"
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Reset
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="ml-auto">
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Reset
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset to Defaults?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to reset all settings to defaults?
+                    This will clear your current configuration.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleReset}>
+                    Reset
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardContent>
       </Card>
