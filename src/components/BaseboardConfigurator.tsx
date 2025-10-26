@@ -11,7 +11,7 @@ import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {optimizeBaseboards} from '@/lib/utils'
 
-import {useEffect, useState} from 'react'
+import {useEffect, useId, useState} from 'react'
 
 import {BoardLengthSelector} from './BoardLengthSelector'
 import {MeasurementInputs} from './MeasurementInputs'
@@ -21,6 +21,7 @@ const DEFAULT_BOARD_LENGTHS = [96, 120, 144]
 const DEFAULT_KERF = 0.125
 
 export function BaseboardConfigurator() {
+  const kerfId = useId()
   const [measurements, setMeasurements] = useState<Measurement[]>([
     {id: crypto.randomUUID(), size: 0},
   ])
@@ -103,11 +104,11 @@ export function BaseboardConfigurator() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
-                <Label htmlFor="kerf" className="min-w-fit">
+                <Label htmlFor={kerfId} className="min-w-fit">
                   Kerf:
                 </Label>
                 <Input
-                  id="kerf"
+                  id={kerfId}
                   type="number"
                   step="0.001"
                   min="0"

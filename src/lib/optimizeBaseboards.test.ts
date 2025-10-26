@@ -223,7 +223,9 @@ describe('optimizeBaseboards', () => {
     // Should use: 144 + 144 + 62 (on smallest that fits)
     expect(result.boards).toHaveLength(3)
 
-    const cutSizes = result.boards.map(b => b.cuts[0]?.size).filter((s): s is number => s !== undefined)
+    const cutSizes = result.boards
+      .map(b => b.cuts[0]?.size)
+      .filter((s): s is number => s !== undefined)
     expect(cutSizes).toContain(144)
     expect(cutSizes.filter(s => s === 144)).toHaveLength(2) // Two full boards
 
