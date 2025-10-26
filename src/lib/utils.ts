@@ -13,6 +13,7 @@ export interface Measurement {
   size: number
   room?: string
   wall?: string
+  splitEvenly?: boolean
 }
 
 export interface BaseboardConfig {
@@ -42,6 +43,37 @@ export interface BaseboardResult {
   }
 }
 
+/**
+ * Calculate balanced splits for a measurement that exceeds max board length.
+ * Splits the measurement into the minimum number of roughly equal pieces,
+ * rounded to 1/16" precision, to avoid large + tiny piece scenarios.
+ */
+export function calculateBalancedSplits(
+  totalSize: number,
+  maxBoardLength: number
+): number[] {
+  const precision = 0.0625 // 1/16"
+
+  // Calculate minimum number of pieces needed
+  const numPieces = Math.ceil(totalSize / maxBoardLength)
+
+  // Calculate base size per piece and round to nearest 1/16"
+  const baseSize = totalSize / numPieces
+  const roundedBaseSize = Math.round(baseSize / precision) * precision
+
+  // Create array with base size
+  const pieces = new Array(numPieces).fill(roundedBaseSize)
+
+  // Calculate the difference from the actual total
+  const currentTotal = roundedBaseSize * numPieces
+  const diff = totalSize - currentTotal
+
+  // Adjust the last piece to make the total exact
+  pieces[numPieces - 1] += diff
+
+  return pieces
+}
+
 export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
   const {measurements, availableLengths, kerf = 0.125} = config
 
@@ -51,6 +83,36 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
 
   // Sort available lengths
   const sortedLengths = [...availableLengths].sort((a, b) => a - b)
+  const maxBoardLength = sortedLengths.at(-1)
+
+  if (maxBoardLength === undefined) {
+    throw new Error('No valid board lengths available')
+  }
+
+  // Pre-process: handle measurements with splitEvenly flag
+  const processedMeasurements: Measurement[] = []
+
+  for (const measurement of measurements) {
+    // If splitEvenly is enabled and measurement exceeds max board length
+    if (measurement.splitEvenly && measurement.size > maxBoardLength) {
+      // Calculate balanced splits
+      const splits = calculateBalancedSplits(measurement.size, maxBoardLength)
+
+      // Create a new measurement for each split piece (maintaining original ID, room, wall)
+      for (const splitSize of splits) {
+        processedMeasurements.push({
+          id: measurement.id,
+          size: splitSize,
+          room: measurement.room,
+          wall: measurement.wall,
+          // Don't propagate splitEvenly to the pieces
+        })
+      }
+    } else {
+      // Keep measurement as-is
+      processedMeasurements.push(measurement)
+    }
+  }
 
   // Helper: calculate used space on a board
   const calculateUsed = (cuts: Cut[]): number => {
@@ -86,7 +148,9 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     }
 
     // Sort measurements by size (largest first) for Best Fit Decreasing
-    const sortedMeasurements = [...measurements].sort((a, b) => b.size - a.size)
+    const sortedMeasurements = [...processedMeasurements].sort(
+      (a, b) => b.size - a.size
+    )
 
     // Helper: find best board to open (minimizes waste)
     const findBestNewBoard = (size: number): number | null => {

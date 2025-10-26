@@ -1,7 +1,10 @@
 import type {Measurement} from '@/lib/utils'
 
 import {Button} from '@/components/ui/button'
+import {Checkbox} from '@/components/ui/checkbox'
 import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {calculateBalancedSplits} from '@/lib/utils'
 
 import {Home, Plus, Trash2} from 'lucide-react'
 import {useState} from 'react'
@@ -9,15 +12,60 @@ import {useState} from 'react'
 interface MeasurementInputsProps {
   measurements: Measurement[]
   onChange: (measurements: Measurement[]) => void
+  availableLengths: number[]
 }
 
 export function MeasurementInputs({
   measurements,
   onChange,
+  availableLengths,
 }: MeasurementInputsProps) {
   // Track which room names are being edited
   const [editingRoomName, setEditingRoomName] = useState<string | null>(null)
   const [newRoomName, setNewRoomName] = useState('')
+
+  // Calculate max board length
+  const maxBoardLength =
+    availableLengths.length > 0 ? Math.max(...availableLengths) : Infinity
+
+  // Helper to format a size as a fraction (e.g., 83.3125 => "83 5/16")
+  const formatAsFraction = (size: number): string => {
+    const whole = Math.floor(size)
+    const decimal = size - whole
+
+    // Common fractions for 1/16" precision
+    const fractions: [number, string][] = [
+      [0, ''],
+      [0.0625, '1/16'],
+      [0.125, '1/8'],
+      [0.1875, '3/16'],
+      [0.25, '1/4'],
+      [0.3125, '5/16'],
+      [0.375, '3/8'],
+      [0.4375, '7/16'],
+      [0.5, '1/2'],
+      [0.5625, '9/16'],
+      [0.625, '5/8'],
+      [0.6875, '11/16'],
+      [0.75, '3/4'],
+      [0.8125, '13/16'],
+      [0.875, '7/8'],
+      [0.9375, '15/16'],
+    ]
+
+    // Find closest fraction
+    const closest = fractions.reduce((prev, curr) => {
+      return Math.abs(curr[0] - decimal) < Math.abs(prev[0] - decimal)
+        ? curr
+        : prev
+    })
+
+    if (closest[1] === '') {
+      return `${whole.toString()}"`
+    }
+
+    return whole > 0 ? `${whole} ${closest[1]}"` : `${closest[1]}"`
+  }
 
   // Group measurements by room
   const groupedMeasurements = measurements.reduce(
@@ -146,45 +194,87 @@ export function MeasurementInputs({
 
             {/* Wall Measurements */}
             <div className="space-y-2 pl-6">
-              {roomMeasurements.map(measurement => (
-                <div key={measurement.id} className="flex items-center gap-2">
-                  <div className="grid flex-1 grid-cols-2 gap-2">
-                    <Input
-                      type="text"
-                      placeholder="Wall name"
-                      value={measurement.wall || ''}
-                      onChange={e =>
-                        updateMeasurement(measurement.id, {
-                          wall: e.target.value,
-                        })
-                      }
-                    />
-                    <Input
-                      type="number"
-                      step="0.0625"
-                      min="0"
-                      placeholder="Length (inches)"
-                      value={measurement.size || ''}
-                      onChange={e =>
-                        updateMeasurement(measurement.id, {
-                          size: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                    />
+              {roomMeasurements.map(measurement => {
+                const isOversized =
+                  measurement.size > maxBoardLength &&
+                  maxBoardLength !== Infinity
+                const splits = isOversized
+                  ? calculateBalancedSplits(measurement.size, maxBoardLength)
+                  : []
+
+                return (
+                  <div key={measurement.id} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="grid flex-1 grid-cols-2 gap-2">
+                        <Input
+                          type="text"
+                          placeholder="Wall name"
+                          value={measurement.wall || ''}
+                          onChange={e =>
+                            updateMeasurement(measurement.id, {
+                              wall: e.target.value,
+                            })
+                          }
+                        />
+                        <Input
+                          type="number"
+                          step="0.0625"
+                          min="0"
+                          placeholder="Length (inches)"
+                          value={measurement.size || ''}
+                          onChange={e =>
+                            updateMeasurement(measurement.id, {
+                              size: parseFloat(e.target.value) || 0,
+                            })
+                          }
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeMeasurement(measurement.id)}
+                        disabled={measurements.length === 1}
+                        aria-label="Remove measurement"
+                        className="h-9 w-9"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Split Evenly Checkbox - only shown if oversized */}
+                    {isOversized && (
+                      <div className="space-y-1 pl-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`split-${measurement.id}`}
+                            checked={measurement.splitEvenly}
+                            onCheckedChange={checked => {
+                              updateMeasurement(measurement.id, {
+                                splitEvenly: checked === true,
+                              })
+                            }}
+                          />
+                          <Label
+                            htmlFor={`split-${measurement.id}`}
+                            className="cursor-pointer font-normal text-sm"
+                          >
+                            Split evenly
+                          </Label>
+                        </div>
+
+                        {/* Show split preview if checkbox is enabled */}
+                        {measurement.splitEvenly && splits.length > 0 && (
+                          <div className="pl-6 text-muted-foreground text-xs">
+                            Will create:{' '}
+                            {splits.map(formatAsFraction).join(' + ')}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeMeasurement(measurement.id)}
-                    disabled={measurements.length === 1}
-                    aria-label="Remove measurement"
-                    className="h-9 w-9"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                )
+              })}
 
               <Button
                 type="button"

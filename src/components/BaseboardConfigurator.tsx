@@ -73,6 +73,7 @@ export function BaseboardConfigurator() {
               <MeasurementInputs
                 measurements={measurements}
                 onChange={setMeasurements}
+                availableLengths={availableLengths}
               />
             </CardContent>
           </Card>
