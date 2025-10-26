@@ -44,7 +44,11 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
 
   // Sort available lengths for easy access to max
   const sortedLengths = [...availableLengths].sort((a, b) => a - b)
-  const maxBoardLength = sortedLengths.at(-1)!
+  const maxBoardLength = sortedLengths.at(-1)
+
+  if (maxBoardLength === undefined) {
+    throw new Error('maxBoardLength is undefined')
+  }
 
   // Sort measurements by size (largest first) for First Fit Decreasing
   const sortedMeasurements = [...measurements].sort((a, b) => b.size - a.size)

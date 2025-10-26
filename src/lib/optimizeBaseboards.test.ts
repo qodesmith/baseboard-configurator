@@ -1,4 +1,4 @@
-import type {BaseboardConfig, BaseboardResult} from './utils'
+import type {BaseboardConfig} from './utils'
 
 import {describe, expect, test} from 'bun:test'
 
@@ -14,8 +14,10 @@ describe('optimizeBaseboards', () => {
     const result = optimizeBaseboards(config)
 
     expect(result.boards).toHaveLength(1)
-    expect(result.boards[0].boardLength).toBe(96)
-    expect(result.boards[0].cuts).toEqual([{id: 'wall1', size: 50}])
+    const board0 = result.boards[0]
+    expect(board0).toBeDefined()
+    expect(board0?.boardLength).toBe(96)
+    expect(board0?.cuts).toEqual([{id: 'wall1', size: 50}])
     expect(result.summary.totalBoards).toBe(1)
     expect(result.summary.boardCounts).toEqual({96: 1})
   })
@@ -33,7 +35,9 @@ describe('optimizeBaseboards', () => {
     const result = optimizeBaseboards(config)
 
     expect(result.boards).toHaveLength(1)
-    expect(result.boards[0].cuts).toHaveLength(2)
+    const board0 = result.boards[0]
+    expect(board0).toBeDefined()
+    expect(board0?.cuts).toHaveLength(2)
     // Should have both cuts: 40 + 0.125 (kerf) + 30 = 70.125 total
     expect(result.summary.totalBoards).toBe(1)
   })
@@ -66,10 +70,14 @@ describe('optimizeBaseboards', () => {
 
     // Should split: 120 + 80 (on a 96 board)
     expect(result.boards).toHaveLength(2)
-    expect(result.boards[0].boardLength).toBe(120)
-    expect(result.boards[0].cuts[0]).toEqual({id: 'long-wall', size: 120})
-    expect(result.boards[1].boardLength).toBe(96)
-    expect(result.boards[1].cuts[0]).toEqual({id: 'long-wall', size: 80})
+    const board0 = result.boards[0]
+    const board1 = result.boards[1]
+    expect(board0).toBeDefined()
+    expect(board1).toBeDefined()
+    expect(board0?.boardLength).toBe(120)
+    expect(board0?.cuts[0]).toEqual({id: 'long-wall', size: 120})
+    expect(board1?.boardLength).toBe(96)
+    expect(board1?.cuts[0]).toEqual({id: 'long-wall', size: 80})
   })
 
   test('First Fit Decreasing: largest measurements processed first', () => {
@@ -91,11 +99,15 @@ describe('optimizeBaseboards', () => {
     expect(result.boards).toHaveLength(2)
 
     // First board should have the largest measurement
-    expect(result.boards[0].cuts[0].id).toBe('large')
+    const board0 = result.boards[0]
+    const board1 = result.boards[1]
+    expect(board0).toBeDefined()
+    expect(board1).toBeDefined()
+    expect(board0?.cuts[0]?.id).toBe('large')
 
     // Second board should have medium and small
-    expect(result.boards[1].cuts).toHaveLength(2)
-    const ids = result.boards[1].cuts.map(cut => cut.id)
+    expect(board1?.cuts).toHaveLength(2)
+    const ids = board1?.cuts.map(cut => cut.id) ?? []
     expect(ids).toContain('medium')
     expect(ids).toContain('small')
   })
@@ -211,7 +223,7 @@ describe('optimizeBaseboards', () => {
     // Should use: 144 + 144 + 62 (on smallest that fits)
     expect(result.boards).toHaveLength(3)
 
-    const cutSizes = result.boards.map(b => b.cuts[0].size)
+    const cutSizes = result.boards.map(b => b.cuts[0]?.size).filter((s): s is number => s !== undefined)
     expect(cutSizes).toContain(144)
     expect(cutSizes.filter(s => s === 144)).toHaveLength(2) // Two full boards
 

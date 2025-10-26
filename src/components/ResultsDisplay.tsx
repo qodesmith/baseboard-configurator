@@ -58,7 +58,8 @@ export function ResultsDisplay({results}: ResultsDisplayProps) {
   results.boards.forEach(board => {
     board.cuts.forEach(cut => {
       if (!colorMap.has(cut.id)) {
-        colorMap.set(cut.id, COLORS[colorIndex % COLORS.length])
+        const color = COLORS[colorIndex % COLORS.length]
+        colorMap.set(cut.id, color || 'bg-gray-500')
         colorIndex++
       }
     })
@@ -170,7 +171,7 @@ export function ResultsDisplay({results}: ResultsDisplayProps) {
                     return (
                       <div
                         key={cutIndex}
-                        className={`absolute h-full ${colorMap.get(cut.id)} flex items-center justify-center border-white border-r font-medium text-white text-xs opacity-80`}
+                        className={`absolute h-full ${colorMap.get(cut.id) || 'bg-gray-500'} flex items-center justify-center border-white border-r font-medium text-white text-xs opacity-80`}
                         style={{
                           left: `${leftPercent}%`,
                           width: `${widthPercent}%`,
@@ -188,7 +189,7 @@ export function ResultsDisplay({results}: ResultsDisplayProps) {
                   {board.cuts.map((cut, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <div
-                        className={`h-3 w-3 ${colorMap.get(cut.id)} rounded`}
+                        className={`h-3 w-3 ${colorMap.get(cut.id) || 'bg-gray-500'} rounded`}
                       />
                       <span>
                         {cut.id}: {cut.size}"
