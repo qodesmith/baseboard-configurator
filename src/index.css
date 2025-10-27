@@ -17,7 +17,6 @@ body::before {
   z-index: -1;
   pointer-events: none;
   content: "";
-  background: url("./logo.svg");
   background-size: 256px;
   opacity: 0.05;
   transform: rotate(-12deg) scale(1.35);
