@@ -2,6 +2,8 @@
 
 Optimize baseboard cuts and minimize waste with smart board length selection and cutting plans.
 
+![Baseboard Configurator](screenshot.png)
+
 ## Overview
 
 Baseboard Configurator is a web application that helps you plan baseboard installations efficiently. Enter your wall measurements, select available board lengths, and get an optimized cutting plan that minimizes material waste. The app uses advanced bin packing algorithms to determine the most efficient way to cut your baseboards.
