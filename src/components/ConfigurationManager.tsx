@@ -25,6 +25,7 @@ import {
   kerfAtom,
   measurementsAtom,
 } from '@/lib/atoms'
+import type {BaseboardResult} from '@/lib/utils'
 
 import {useAtom, useAtomValue, useSetAtom} from 'jotai'
 import {Copy, Download, RotateCcw, Save} from 'lucide-react'
@@ -33,7 +34,11 @@ import {useState} from 'react'
 import {LoadConfigDialog} from './LoadConfigDialog'
 import {SaveConfigDialog} from './SaveConfigDialog'
 
-export function ConfigurationManager() {
+interface ConfigurationManagerProps {
+  results: BaseboardResult | null
+}
+
+export function ConfigurationManager({results}: ConfigurationManagerProps) {
   const measurements = useAtomValue(measurementsAtom)
   const availableLengths = useAtomValue(availableLengthsAtom)
   const kerf = useAtomValue(kerfAtom)
@@ -95,6 +100,7 @@ export function ConfigurationManager() {
       availableLengths,
       kerf,
       ...(currentConfigName && {name: currentConfigName}),
+      ...(results && {cuttingPlan: results}),
       exportedAt: new Date().toISOString(),
     }
 
@@ -142,7 +148,7 @@ export function ConfigurationManager() {
               variant="outline"
               size="sm"
               onClick={handleExportConfig}
-              disabled={!currentConfigName || exportCopied}
+              disabled={exportCopied}
             >
               <Copy className="mr-2 h-4 w-4" />
               {exportCopied ? 'Copied!' : 'Export'}

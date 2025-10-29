@@ -60,7 +60,7 @@ export function BaseboardConfigurator() {
         {/* Left Column - Inputs */}
         <div className="space-y-6">
           {/* Configuration Manager */}
-          <ConfigurationManager />
+          <ConfigurationManager results={results} />
 
           {/* Measurements Input */}
           <Card>
