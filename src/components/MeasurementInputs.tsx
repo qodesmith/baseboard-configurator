@@ -4,6 +4,7 @@ import {Button} from '@/components/ui/button'
 import {Checkbox} from '@/components/ui/checkbox'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
+import {Switch} from '@/components/ui/switch'
 import {calculateBalancedSplits} from '@/lib/utils'
 
 import {Home, Plus, Trash2} from 'lucide-react'
@@ -13,12 +14,16 @@ interface MeasurementInputsProps {
   measurements: Measurement[]
   onChange: (measurements: Measurement[]) => void
   availableLengths: number[]
+  focusedRoom: string | null
+  onFocusedRoomChange: (room: string | null) => void
 }
 
 export function MeasurementInputs({
   measurements,
   onChange,
   availableLengths,
+  focusedRoom,
+  onFocusedRoomChange,
 }: MeasurementInputsProps) {
   // Track which room names are being edited
   const [editingRoomName, setEditingRoomName] = useState<string | null>(null)
@@ -124,17 +129,38 @@ export function MeasurementInputs({
     onChange(measurements.filter(m => m.room !== roomName))
   }
 
+  const handleToggleRoom = (roomName: string) => {
+    if (focusedRoom === roomName) {
+      onFocusedRoomChange(null)
+    } else {
+      onFocusedRoomChange(roomName)
+    }
+  }
+
   return (
     <div className="space-y-4">
       {Object.entries(groupedMeasurements).map(
-        ([roomName, roomMeasurements]) => (
-          <div
-            key={roomName || 'unnamed'}
-            className="space-y-3 rounded-lg border p-4"
-          >
+        ([roomName, roomMeasurements]) => {
+          const isThisRoomFocused = focusedRoom === roomName
+          const shouldGrayOut = focusedRoom !== null && !isThisRoomFocused
+
+          return (
+            <div
+              key={roomName || 'unnamed'}
+              className={`space-y-3 rounded-lg border p-4 transition-opacity ${
+                shouldGrayOut ? 'opacity-40' : 'opacity-100'
+              }`}
+            >
             {/* Room Header */}
             <div className="flex items-center gap-2">
-              <Home className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={isThisRoomFocused}
+                  onCheckedChange={() => handleToggleRoom(roomName)}
+                  aria-label={`Focus on ${roomName || 'Unnamed Room'}`}
+                />
+                <Home className="h-4 w-4 text-muted-foreground" />
+              </div>
               {editingRoomName === roomName ? (
                 <Input
                   type="text"
@@ -288,7 +314,8 @@ export function MeasurementInputs({
               </Button>
             </div>
           </div>
-        )
+          )
+        }
       )}
 
       {/* Add Room Button */}

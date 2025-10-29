@@ -26,6 +26,7 @@ export function BaseboardConfigurator() {
   const [availableLengths, setAvailableLengths] = useAtom(availableLengthsAtom)
   const [kerf, setKerf] = useAtom(kerfAtom)
   const [results, setResults] = useState<BaseboardResult | null>(null)
+  const [focusedRoom, setFocusedRoom] = useState<string | null>(null)
 
   // Auto-calculate whenever inputs change
   useEffect(() => {
@@ -74,6 +75,8 @@ export function BaseboardConfigurator() {
                 measurements={measurements}
                 onChange={setMeasurements}
                 availableLengths={availableLengths}
+                focusedRoom={focusedRoom}
+                onFocusedRoomChange={setFocusedRoom}
               />
             </CardContent>
           </Card>
@@ -124,7 +127,7 @@ export function BaseboardConfigurator() {
 
         {/* Right Column - Results */}
         <div>
-          <ResultsDisplay results={results} />
+          <ResultsDisplay results={results} focusedRoom={focusedRoom} />
         </div>
       </div>
     </div>
