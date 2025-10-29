@@ -1,111 +1,76 @@
----
-description: Use Bun instead of Node.js, npm, pnpm, or vite.
-globs: "*.ts, *.tsx, *.html, *.css, *.js, *.jsx, package.json"
-alwaysApply: false
----
+# CLAUDE.md
 
-Default to using Bun instead of Node.js.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Bun automatically loads .env, so don't use dotenv.
+## Project Overview
 
-## APIs
+Baseboard Configurator is a web application that optimizes baseboard cuts using bin packing algorithms. Users input wall measurements, select available board lengths, and get cutting plans that minimize waste.
 
-- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
-- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
-- `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
-- `WebSocket` is built-in. Don't use `ws`.
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Bun.$`ls` instead of execa.
+## Development Commands
 
-## Testing
+### Core Commands
+- `bun dev` - Start development server with hot reloading
+- `bun start` - Start production server
+- `bun run build` - Build the application for production
 
-Use `bun test` to run tests.
+### Code Quality
+- `bun run check` - Run Biome checks (lint + format)
+- `bun run check:fix` - Fix Biome issues automatically
+- `bun run lint` - Run linting only
+- `bun run lint:fix` - Fix linting issues
+- `bun run format` - Check formatting
+- `bun run format:fix` - Fix formatting issues
 
-```ts#index.test.ts
-import { test, expect } from "bun:test";
+### Testing
+- Test file: `src/lib/optimizeBaseboards.test.ts`
+- No test runner script configured - run tests with `bun test` if needed
 
-test("hello world", () => {
-  expect(1).toBe(1);
-});
-```
+## Architecture
 
-## Frontend
+### Tech Stack
+- **Runtime**: Bun with file-based routing
+- **Frontend**: React 19 with TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui (Radix UI primitives)
+- **State Management**: Jotai atoms
+- **Code Quality**: Biome (extends @qodestack/biome-config/react)
 
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
+### Core Structure
 
-Server:
+**Server**: `src/index.ts` - Bun server with API routes and SPA serving
+**App**: `src/App.tsx` - Root component with theme management
+**Main Component**: `src/components/BaseboardConfigurator.tsx` - Core logic coordinator
 
-```ts#index.ts
-import index from "./index.html"
+### Key Components
+- `MeasurementInputs.tsx` - Wall measurement input with room/wall labeling
+- `BoardLengthSelector.tsx` - Available board length selection
+- `ResultsDisplay.tsx` - Cutting plan visualization
+- `ConfigurationManager.tsx` - Save/load configurations
 
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
-  },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
-  }
-})
-```
+### State Management (Jotai)
+Located in `src/lib/atoms.ts`:
+- `measurementsAtom` - Wall measurements with room/wall labels
+- `availableLengthsAtom` - Selected board lengths
+- `kerfAtom` - Saw blade width for cut calculations
 
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
+### Core Algorithm
+`src/lib/utils.ts` contains the `optimizeBaseboards` function using Best Fit Decreasing bin packing:
+1. Tests multiple strategies (individual lengths, combinations, pairs)
+2. Sorts measurements largest to smallest
+3. Fits cuts to boards with least remaining space
+4. Handles oversized measurements with even splitting option
 
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
-```
+### UI Components
+Located in `src/components/ui/` - shadcn/ui components with Tailwind styling
 
-With the following `frontend.tsx`:
+### Styling Conventions
+- Use the `cn()` utility function from `src/lib/utils.ts` for conditional classNames
+- `cn()` combines `clsx` and `tailwind-merge` for proper Tailwind class merging
 
-```tsx#frontend.tsx
-import React from "react";
-
-// import .css files directly and it works
-import './index.css';
-
-import { createRoot } from "react-dom/client";
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
+## Key Features
+- Real-time optimization as inputs change
+- 1/16" measurement precision
+- Configuration save/load functionality
+- Export cutting plans
+- Balanced vs greedy splitting for oversized measurements
+- Room and wall labeling for organization
