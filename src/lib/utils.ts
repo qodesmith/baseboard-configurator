@@ -312,34 +312,60 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
         // Calculate balanced splits
         const splits = calculateBalancedSplits(measurement.size, maxBoardLength)
 
-        // Create new boards for each balanced split
+        // Re-optimize each split piece into the existing solution using bin-packing
         for (const splitSize of splits) {
-          // Find best board size for this split
-          let bestLength: number | null = null
-          let minWaste = Infinity
+          const splitCut: Cut = {
+            id: measurement.id,
+            size: splitSize,
+            room: measurement.room,
+            wall: measurement.wall,
+          }
 
-          for (const length of sortedLengths) {
-            if (splitSize <= length) {
-              const waste = length - splitSize
-              if (waste < minWaste) {
-                minWaste = waste
-                bestLength = length
+          // Try to fit this split into an existing board (Best Fit)
+          let bestBoardIndex = -1
+          let minRemainingSpace = Infinity
+
+          for (let i = 0; i < bestBoards.length; i++) {
+            const board = bestBoards[i]
+
+            if (board && canFit(board, splitSize)) {
+              const currentUsed = calculateUsed(board.cuts)
+              const kerfNeeded = board.cuts.length > 0 ? kerf : 0
+              const remainingAfter =
+                board.boardLength - (currentUsed + kerfNeeded + splitSize)
+
+              if (remainingAfter < minRemainingSpace) {
+                minRemainingSpace = remainingAfter
+                bestBoardIndex = i
               }
             }
           }
 
-          if (bestLength) {
-            bestBoards.push({
-              boardLength: bestLength,
-              cuts: [
-                {
-                  id: measurement.id,
-                  size: splitSize,
-                  room: measurement.room,
-                  wall: measurement.wall,
-                },
-              ],
-            })
+          // Add to existing board if found
+          const bestBoard = bestBoards[bestBoardIndex]
+          if (bestBoardIndex !== -1 && bestBoard) {
+            bestBoard.cuts.push(splitCut)
+          } else {
+            // Create new board only if no existing board can fit it
+            let bestLength: number | null = null
+            let minWaste = Infinity
+
+            for (const length of sortedLengths) {
+              if (splitSize <= length) {
+                const waste = length - splitSize
+                if (waste < minWaste) {
+                  minWaste = waste
+                  bestLength = length
+                }
+              }
+            }
+
+            if (bestLength) {
+              bestBoards.push({
+                boardLength: bestLength,
+                cuts: [splitCut],
+              })
+            }
           }
         }
       }

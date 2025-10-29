@@ -59,6 +59,7 @@ Located in `src/lib/atoms.ts`:
 2. Sorts measurements largest to smallest
 3. Fits cuts to boards with least remaining space
 4. Handles oversized measurements with even splitting option
+5. Re-optimizes split pieces into existing boards to minimize waste
 
 ### UI Components
 Located in `src/components/ui/` - shadcn/ui components with Tailwind styling

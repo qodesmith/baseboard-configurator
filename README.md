@@ -98,6 +98,7 @@ For oversized measurements with "Split Evenly" enabled:
 - Calculates minimum number of pieces needed
 - Divides measurement into equal pieces (1/16" precision)
 - Adjusts last piece to ensure exact total
+- Re-optimizes split pieces into existing boards using Best Fit algorithm
 
 ## Contributing
 

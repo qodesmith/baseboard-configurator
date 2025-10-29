@@ -1,3 +1,5 @@
+import type {BaseboardResult} from '@/lib/utils'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +27,6 @@ import {
   kerfAtom,
   measurementsAtom,
 } from '@/lib/atoms'
-import type {BaseboardResult} from '@/lib/utils'
 
 import {useAtom, useAtomValue, useSetAtom} from 'jotai'
 import {Copy, Download, RotateCcw, Save} from 'lucide-react'
