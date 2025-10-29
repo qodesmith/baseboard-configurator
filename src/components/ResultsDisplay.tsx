@@ -187,7 +187,7 @@ export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
                     Board {boardIndex + 1} ({board.boardLength}")
                   </span>
                   <span className="text-muted-foreground">
-                    Waste: {wasteSpace.toFixed(1)}"
+                    Used: {usedSpace + kerfSpace}" | Waste: {wasteSpace}"
                   </span>
                 </div>
 
