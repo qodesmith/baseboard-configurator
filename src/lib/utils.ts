@@ -7,6 +7,23 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Generate board display name using letter sequence: A, B, C, ..., Z, AA, AB, ..., AZ, BA, BB, etc.
+ * @param index Zero-based index of the board
+ * @returns Display name like "A", "Z", "AA", "BA", etc.
+ */
+export function generateBoardName(index: number): string {
+  let result = ''
+  let num = index
+
+  do {
+    result = String.fromCharCode(65 + (num % 26)) + result
+    num = Math.floor(num / 26)
+  } while (num > 0)
+
+  return result
+}
+
 // Baseboard optimization types
 export interface Measurement {
   id: string
@@ -32,6 +49,7 @@ export interface Cut {
 export interface Board {
   boardLength: number
   cuts: Cut[]
+  displayName?: string
 }
 
 export interface BaseboardResult {
@@ -78,6 +96,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
   const {measurements, availableLengths, kerf = 0.125} = config
 
   if (availableLengths.length === 0) {
+    // TODO - show this in a toast
     throw new Error('No available board lengths provided')
   }
 
@@ -387,8 +406,14 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     totalWaste += waste
   }
 
+  // Assign display names to boards
+  const boardsWithNames = bestBoards.map((board, index) => ({
+    ...board,
+    displayName: `Board ${generateBoardName(index)}`,
+  }))
+
   return {
-    boards: bestBoards,
+    boards: boardsWithNames,
     summary: {
       totalBoards,
       boardCounts,
