@@ -18,7 +18,7 @@ import {App} from './App'
 const elem = document.getElementById('root')
 
 if (!elem) {
-  throw new Error('No roote element found!')
+  throw new Error('No root element found!')
 }
 
 const app = (

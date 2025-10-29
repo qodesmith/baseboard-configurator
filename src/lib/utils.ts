@@ -1,6 +1,7 @@
 import type {ClassValue} from 'clsx'
 
 import {clsx} from 'clsx'
+import {toast} from 'sonner'
 import {twMerge} from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
@@ -96,8 +97,15 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
   const {measurements, availableLengths, kerf = 0.125} = config
 
   if (availableLengths.length === 0) {
-    // TODO - show this in a toast
-    throw new Error('No available board lengths provided')
+    toast.error('No available board lengths provided')
+    return {
+      boards: [],
+      summary: {
+        totalBoards: 0,
+        boardCounts: {},
+        totalWaste: 0,
+      },
+    }
   }
 
   // Sort available lengths

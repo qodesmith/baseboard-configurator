@@ -31,6 +31,7 @@ import {
 import {useAtom, useAtomValue, useSetAtom} from 'jotai'
 import {Copy, Download, RotateCcw, Save} from 'lucide-react'
 import {useState} from 'react'
+import {toast} from 'sonner'
 
 import {LoadConfigDialog} from './LoadConfigDialog'
 import {SaveConfigDialog} from './SaveConfigDialog'
@@ -109,8 +110,8 @@ export function ConfigurationManager({results}: ConfigurationManagerProps) {
       await navigator.clipboard.writeText(JSON.stringify(config, null, 2))
       setExportCopied(true)
       setTimeout(() => setExportCopied(false), 2000)
-    } catch (error) {
-      console.error('Failed to copy to clipboard:', error)
+    } catch {
+      toast.error('Failed to copy to clipboard')
     }
   }
 
