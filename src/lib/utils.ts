@@ -391,6 +391,25 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     }
   }
 
+  // Post-processing: Optimize board sizes by downgrading to smaller lengths when possible
+  for (const board of bestBoards) {
+    const currentUsed = calculateUsed(board.cuts)
+
+    // Find the smallest available board length that can fit all cuts
+    let bestSmallerLength: number | null = null
+    for (const length of sortedLengths) {
+      if (length < board.boardLength && currentUsed <= length) {
+        bestSmallerLength = length
+        break // sortedLengths is sorted ascending, so first fit is smallest
+      }
+    }
+
+    // If we found a smaller board that works, downgrade it
+    if (bestSmallerLength) {
+      board.boardLength = bestSmallerLength
+    }
+  }
+
   // Calculate summary statistics
   const totalBoards = bestBoards.length
   const boardCounts: Record<number, number> = {}

@@ -184,7 +184,8 @@ export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
               <div key={boardIndex} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">
-                    {board.displayName || `Board ${boardIndex + 1}`} ({board.boardLength}")
+                    {board.displayName || `Board ${boardIndex + 1}`} (
+                    {board.boardLength}")
                   </span>
                   <span className="text-muted-foreground">
                     Used: {usedSpace + kerfSpace}" | Waste: {wasteSpace}"
