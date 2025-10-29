@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import {cn} from '@/lib/utils'
 
 import {Package, Ruler, TrendingDown} from 'lucide-react'
 
@@ -53,8 +54,8 @@ export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
   }
 
   // Filter boards based on focused room
-  const filteredBoards = focusedRoom 
-    ? results.boards.filter(board => 
+  const filteredBoards = focusedRoom
+    ? results.boards.filter(board =>
         board.cuts.some(cut => cut.room === focusedRoom)
       )
     : results.boards
@@ -74,18 +75,27 @@ export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
   })
 
   // Calculate filtered summary statistics
-  const filteredSummary = focusedRoom ? {
-    totalBoards: filteredBoards.length,
-    totalWaste: filteredBoards.reduce((sum, board) => {
-      const usedSpace = board.cuts.reduce((cutSum, cut) => cutSum + cut.size, 0)
-      const kerfSpace = board.cuts.length > 1 ? (board.cuts.length - 1) * 0.125 : 0
-      return sum + (board.boardLength - usedSpace - kerfSpace)
-    }, 0),
-    boardCounts: filteredBoards.reduce((counts, board) => {
-      counts[board.boardLength] = (counts[board.boardLength] || 0) + 1
-      return counts
-    }, {} as Record<number, number>)
-  } : results.summary
+  const filteredSummary = focusedRoom
+    ? {
+        totalBoards: filteredBoards.length,
+        totalWaste: filteredBoards.reduce((sum, board) => {
+          const usedSpace = board.cuts.reduce(
+            (cutSum, cut) => cutSum + cut.size,
+            0
+          )
+          const kerfSpace =
+            board.cuts.length > 1 ? (board.cuts.length - 1) * 0.125 : 0
+          return sum + (board.boardLength - usedSpace - kerfSpace)
+        }, 0),
+        boardCounts: filteredBoards.reduce(
+          (counts, board) => {
+            counts[board.boardLength] = (counts[board.boardLength] || 0) + 1
+            return counts
+          },
+          {} as Record<number, number>
+        ),
+      }
+    : results.summary
 
   return (
     <div className="space-y-6">
@@ -113,9 +123,11 @@ export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
             <div className="text-center">
               <Ruler className="mx-auto mb-2 h-8 w-8 text-green-500" />
               <div className="font-bold text-2xl">
-                {filteredSummary.totalBoards > 0 ? (
-                  filteredSummary.totalWaste / filteredSummary.totalBoards
-                ).toFixed(1) : '0'}
+                {filteredSummary.totalBoards > 0
+                  ? (
+                      filteredSummary.totalWaste / filteredSummary.totalBoards
+                    ).toFixed(1)
+                  : '0'}
                 "
               </div>
               <div className="text-muted-foreground text-xs">
@@ -129,7 +141,9 @@ export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
       {/* Shopping List */}
       <Card>
         <CardHeader>
-          <CardTitle>Shopping List{focusedRoom ? ` - ${focusedRoom}` : ''}</CardTitle>
+          <CardTitle>
+            Shopping List{focusedRoom ? ` - ${focusedRoom}` : ''}
+          </CardTitle>
           <CardDescription>Boards you need to purchase</CardDescription>
         </CardHeader>
         <CardContent>
@@ -154,7 +168,9 @@ export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
       {/* Cutting Plan */}
       <Card>
         <CardHeader>
-          <CardTitle>Cutting Plan{focusedRoom ? ` - ${focusedRoom}` : ''}</CardTitle>
+          <CardTitle>
+            Cutting Plan{focusedRoom ? ` - ${focusedRoom}` : ''}
+          </CardTitle>
           <CardDescription>Visual representation of each board</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -198,7 +214,10 @@ export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
                     return (
                       <div
                         key={cutIndex}
-                        className={`absolute flex h-full items-center justify-center border-white border-r font-medium text-white text-xs opacity-80 ${colorMap.get(cut.id) || 'bg-gray-500'}`}
+                        className={cn(
+                          'absolute flex h-full items-center justify-center border-white border-r font-medium text-white text-xs opacity-80',
+                          colorMap.get(cut.id) || 'bg-gray-500'
+                        )}
                         style={{
                           left: `${leftPercent}%`,
                           width: `${widthPercent}%`,
@@ -222,7 +241,10 @@ export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
                     return (
                       <div key={idx} className="flex items-center gap-2">
                         <div
-                          className={`h-3 w-3 rounded ${colorMap.get(cut.id) || 'bg-gray-500'}`}
+                          className={cn(
+                            'h-3 w-3 rounded',
+                            colorMap.get(cut.id) || 'bg-gray-500'
+                          )}
                         />
                         <span>
                           {label}: {cut.size}"
