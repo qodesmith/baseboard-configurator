@@ -1,4 +1,5 @@
 import type {ClassValue} from 'clsx'
+import type {BoardLengthItem} from './globalState'
 
 import {clsx} from 'clsx'
 import {toast} from 'sonner'
@@ -38,7 +39,7 @@ export interface Measurement {
 
 export interface BaseboardConfig {
   measurements: Measurement[]
-  availableLengths: number[]
+  availableLengths: BoardLengthItem[]
   kerf: number
 }
 
@@ -150,8 +151,11 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     }
   }
 
-  // Sort available lengths
-  const sortedLengths = [...availableLengths].sort((a, b) => a - b)
+  // Extract enabled lengths and sort them
+  const enabledLengths = availableLengths
+    .filter(item => item.enabled)
+    .map(item => item.length)
+  const sortedLengths = [...enabledLengths].sort((a, b) => a - b)
 
   // Helper: check if a cut fits in a board
   const canFit = (board: Board, cutSize: number): boolean => {

@@ -1,3 +1,5 @@
+import type {BoardLengthItem} from '@/lib/globalState'
+
 import {Button} from '@/components/ui/button'
 import {
   Dialog,
@@ -26,7 +28,7 @@ interface SaveConfigDialogProps {
 
 interface SavedConfig {
   measurements: unknown
-  availableLengths: number[]
+  availableLengths: BoardLengthItem[]
   kerf: number
   timestamp: number
 }
@@ -34,9 +36,7 @@ interface SavedConfig {
 export function SaveConfigDialog({open, onOpenChange}: SaveConfigDialogProps) {
   const nameId = useId()
   const measurements = useAtomValue(measurementsAtom)
-  const availableLengths = useAtomValue(availableBoardLengthsSelector).map(
-    ({length}) => length
-  )
+  const availableLengths = useAtomValue(availableBoardLengthsSelector)
   const kerf = useAtomValue(kerfAtom)
   const [_currentConfigName, setCurrentConfigName] = useAtom(
     currentConfigNameAtom

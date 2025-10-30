@@ -1,3 +1,4 @@
+import type {BoardLengthItem} from './globalState'
 import type {BaseboardConfig} from './utils'
 
 import {describe, expect, test} from 'bun:test'
@@ -9,11 +10,16 @@ import {
   optimizeBaseboards,
 } from './utils'
 
+// Helper function to convert number[] to BoardLengthItem[] for tests
+const createBoardLengths = (lengths: number[]): BoardLengthItem[] => {
+  return lengths.map(length => ({length, enabled: true}))
+}
+
 describe('optimizeBaseboards', () => {
   test('single measurement fits in smallest available board', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'wall1', size: 50}],
-      availableLengths: [96, 120, 144],
+      availableLengths: createBoardLengths([96, 120, 144]),
       kerf: 0.125,
     }
 
@@ -34,7 +40,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall1', size: 40},
         {id: 'wall2', size: 30},
       ],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0.125,
     }
 
@@ -54,7 +60,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall1', size: 90},
         {id: 'wall2', size: 85},
       ],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0.125,
     }
 
@@ -69,7 +75,7 @@ describe('optimizeBaseboards', () => {
   test('oversized measurement splits across multiple boards', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'long-wall', size: 200}],
-      availableLengths: [96, 120],
+      availableLengths: createBoardLengths([96, 120]),
       kerf: 0.125,
     }
 
@@ -94,7 +100,7 @@ describe('optimizeBaseboards', () => {
         {id: 'large', size: 90},
         {id: 'medium', size: 50},
       ],
-      availableLengths: [96, 120],
+      availableLengths: createBoardLengths([96, 120]),
       kerf: 0.125,
     }
 
@@ -130,7 +136,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall1', size: 48},
         {id: 'wall2', size: 48},
       ],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0.25, // larger kerf
     }
 
@@ -143,7 +149,7 @@ describe('optimizeBaseboards', () => {
   test('waste calculation is accurate', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'wall1', size: 50}],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0,
     }
 
@@ -159,7 +165,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall1', size: 40},
         {id: 'wall2', size: 30},
       ],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0.125,
     }
 
@@ -177,7 +183,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall2', size: 80},
         {id: 'wall3', size: 60},
       ],
-      availableLengths: [96, 120],
+      availableLengths: createBoardLengths([96, 120]),
       kerf: 0.125,
     }
 
@@ -212,7 +218,7 @@ describe('optimizeBaseboards', () => {
         {id: 'hallway', size: 45.5},
         {id: 'closet', size: 24},
       ],
-      availableLengths: [96, 120, 144],
+      availableLengths: createBoardLengths([96, 120, 144]),
       kerf: 0.125,
     }
 
@@ -245,7 +251,7 @@ describe('optimizeBaseboards', () => {
   test('very large measurement requires multiple max-length boards', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'extremely-long-wall', size: 350}],
-      availableLengths: [96, 120, 144],
+      availableLengths: createBoardLengths([96, 120, 144]),
       kerf: 0.125,
     }
 
@@ -275,7 +281,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall3', size: 80},
         {id: 'wall4', size: 80},
       ],
-      availableLengths: [96, 120, 144],
+      availableLengths: createBoardLengths([96, 120, 144]),
       kerf: 0.125,
     }
 
@@ -303,7 +309,7 @@ describe('optimizeBaseboards', () => {
   test('empty measurements array returns empty result', () => {
     const config: BaseboardConfig = {
       measurements: [],
-      availableLengths: [96, 120],
+      availableLengths: createBoardLengths([96, 120]),
       kerf: 0.125,
     }
 
@@ -318,7 +324,7 @@ describe('optimizeBaseboards', () => {
   test('empty available lengths returns empty result with error', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'wall1', size: 50}],
-      availableLengths: [],
+      availableLengths: createBoardLengths([]),
       kerf: 0.125,
     }
 
@@ -336,7 +342,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall1', size: 50, room: 'Living Room', wall: 'North'},
         {id: 'wall2', size: 40, room: 'Bedroom', wall: 'South'},
       ],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0.125,
     }
 
@@ -370,7 +376,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall2', size: 85},
         {id: 'wall3', size: 80},
       ],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0.125,
     }
 
@@ -385,7 +391,7 @@ describe('optimizeBaseboards', () => {
   test('board downgrading optimization works', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'wall1', size: 70}],
-      availableLengths: [96, 120, 144],
+      availableLengths: createBoardLengths([96, 120, 144]),
       kerf: 0.125,
     }
 
@@ -404,7 +410,7 @@ describe('optimizeBaseboards', () => {
         {id: 'trim2', size: 1.5},
         {id: 'trim3', size: 2.75},
       ],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0.125,
     }
 
@@ -425,7 +431,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall1', size: 48},
         {id: 'wall2', size: 48},
       ],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0,
     }
 
@@ -444,7 +450,7 @@ describe('optimizeBaseboards', () => {
         {id: 'long-wall', size: 200, splitEvenly: true},
         {id: 'normal-wall', size: 50},
       ],
-      availableLengths: [96, 120],
+      availableLengths: createBoardLengths([96, 120]),
       kerf: 0.125,
     }
 
@@ -468,7 +474,7 @@ describe('optimizeBaseboards', () => {
   test('measurements without splitEvenly use greedy splitting', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'long-wall', size: 200, splitEvenly: false}],
-      availableLengths: [96, 120],
+      availableLengths: createBoardLengths([96, 120]),
       kerf: 0.125,
     }
 
@@ -492,7 +498,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall2', size: 200, splitEvenly: false},
         {id: 'wall3', size: 50},
       ],
-      availableLengths: [96, 120],
+      availableLengths: createBoardLengths([96, 120]),
       kerf: 0.125,
     }
 
@@ -527,7 +533,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall3', size: 110},
         {id: 'wall4', size: 110},
       ],
-      availableLengths: [96, 120],
+      availableLengths: createBoardLengths([96, 120]),
       kerf: 0.125,
     }
 
@@ -541,7 +547,7 @@ describe('optimizeBaseboards', () => {
   test('edge case: measurement exactly equals board length', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'exact-fit', size: 96}],
-      availableLengths: [96, 120],
+      availableLengths: createBoardLengths([96, 120]),
       kerf: 0,
     }
 
@@ -558,7 +564,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall1', size: 47.9375}, // 47 15/16"
         {id: 'wall2', size: 47.9375}, // 47 15/16"
       ],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0.125, // 1/8"
     }
 
@@ -575,7 +581,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall1', size: 48.0625}, // 48 1/16"
         {id: 'wall2', size: 47.9375}, // 47 15/16"
       ],
-      availableLengths: [96],
+      availableLengths: createBoardLengths([96]),
       kerf: 0.125,
     }
 

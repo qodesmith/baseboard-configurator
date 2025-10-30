@@ -1,3 +1,4 @@
+import type {BoardLengthItem} from '@/lib/globalState'
 import type {Measurement} from '@/lib/utils'
 
 import {Button} from '@/components/ui/button'
@@ -27,7 +28,7 @@ interface LoadConfigDialogProps {
 
 interface SavedConfig {
   measurements: Measurement[]
-  availableLengths: number[]
+  availableLengths: BoardLengthItem[]
   kerf: number
   timestamp: number
 }
@@ -59,9 +60,7 @@ export function LoadConfigDialog({open, onOpenChange}: LoadConfigDialogProps) {
     if (!config) return
 
     setMeasurements(config.measurements)
-    setBoardLengths(prev => {
-      return prev.filter(({length}) => config.availableLengths.includes(length))
-    })
+    setBoardLengths(config.availableLengths)
     setKerf(config.kerf)
     setCurrentConfigName(configName)
 

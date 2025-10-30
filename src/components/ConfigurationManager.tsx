@@ -23,7 +23,6 @@ import {
   availableBoardLengthsSelector,
   boardLengthsAtom,
   currentConfigNameAtom,
-  DEFAULT_KERF,
   kerfAtom,
   measurementsAtom,
 } from '@/lib/globalState'
@@ -46,9 +45,7 @@ export function ConfigurationManager({results}: ConfigurationManagerProps) {
   const kerf = useAtomValue(kerfAtom)
   const setMeasurements = useSetAtom(measurementsAtom)
   const setBoardLengths = useSetAtom(boardLengthsAtom)
-  const availableLengths = useAtomValue(availableBoardLengthsSelector).map(
-    ({length}) => length
-  )
+  const availableLengths = useAtomValue(availableBoardLengthsSelector)
   const setKerf = useSetAtom(kerfAtom)
   const [currentConfigName, setCurrentConfigName] = useAtom(
     currentConfigNameAtom
@@ -95,7 +92,7 @@ export function ConfigurationManager({results}: ConfigurationManagerProps) {
   const handleReset = () => {
     setMeasurements(RESET)
     setBoardLengths(RESET)
-    setKerf(DEFAULT_KERF)
+    setKerf(RESET)
     setCurrentConfigName(null)
   }
 

@@ -35,7 +35,7 @@ export function BaseboardConfigurator() {
 
     const result = optimizeBaseboards({
       measurements: validMeasurements,
-      availableLengths: availableBoardLengths.map(({length}) => length),
+      availableLengths: availableBoardLengths,
       kerf,
     })
 
