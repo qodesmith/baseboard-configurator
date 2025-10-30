@@ -40,7 +40,7 @@ const server = serve({
   },
 })
 
-const url = `http://localhost:${server.port}`
+const url = server.url.href
 const start =
   process.platform === 'darwin'
     ? 'open'
@@ -49,3 +49,6 @@ const start =
       : 'xdg-open'
 
 await $`${{raw: start}} ${{raw: url}}`
+
+// biome-ignore lint/suspicious/noConsole: it's ok
+console.log(`🚀 Server running at ${url}`)
