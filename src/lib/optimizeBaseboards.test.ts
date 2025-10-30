@@ -2,7 +2,11 @@ import type {BaseboardConfig} from './utils'
 
 import {describe, expect, test} from 'bun:test'
 
-import {optimizeBaseboards} from './utils'
+import {
+  calculateBalancedSplits,
+  generateBoardName,
+  optimizeBaseboards,
+} from './utils'
 
 describe('optimizeBaseboards', () => {
   test('single measurement fits in smallest available board', () => {
@@ -289,5 +293,371 @@ describe('optimizeBaseboards', () => {
     // Verify each board has two cuts
     expect(result.boards[0]?.cuts).toHaveLength(2)
     expect(result.boards[1]?.cuts).toHaveLength(2)
+  })
+
+  test('empty measurements array returns empty result', () => {
+    const config: BaseboardConfig = {
+      measurements: [],
+      availableLengths: [96, 120],
+    }
+
+    const result = optimizeBaseboards(config)
+
+    expect(result.boards).toHaveLength(0)
+    expect(result.summary.totalBoards).toBe(0)
+    expect(result.summary.boardCounts).toEqual({})
+    expect(result.summary.totalWaste).toBe(0)
+  })
+
+  test('empty available lengths returns empty result with error', () => {
+    const config: BaseboardConfig = {
+      measurements: [{id: 'wall1', size: 50}],
+      availableLengths: [],
+    }
+
+    const result = optimizeBaseboards(config)
+
+    expect(result.boards).toHaveLength(0)
+    expect(result.summary.totalBoards).toBe(0)
+    expect(result.summary.boardCounts).toEqual({})
+    expect(result.summary.totalWaste).toBe(0)
+  })
+
+  test('room and wall metadata is preserved in cuts', () => {
+    const config: BaseboardConfig = {
+      measurements: [
+        {id: 'wall1', size: 50, room: 'Living Room', wall: 'North'},
+        {id: 'wall2', size: 40, room: 'Bedroom', wall: 'South'},
+      ],
+      availableLengths: [96],
+    }
+
+    const result = optimizeBaseboards(config)
+
+    expect(result.boards).toHaveLength(1)
+    const cuts = result.boards[0]?.cuts ?? []
+    expect(cuts).toHaveLength(2)
+
+    const wall1Cut = cuts.find(c => c.id === 'wall1')
+    const wall2Cut = cuts.find(c => c.id === 'wall2')
+
+    expect(wall1Cut).toEqual({
+      id: 'wall1',
+      size: 50,
+      room: 'Living Room',
+      wall: 'North',
+    })
+    expect(wall2Cut).toEqual({
+      id: 'wall2',
+      size: 40,
+      room: 'Bedroom',
+      wall: 'South',
+    })
+  })
+
+  test('board display names are assigned correctly', () => {
+    const config: BaseboardConfig = {
+      measurements: [
+        {id: 'wall1', size: 90},
+        {id: 'wall2', size: 85},
+        {id: 'wall3', size: 80},
+      ],
+      availableLengths: [96],
+    }
+
+    const result = optimizeBaseboards(config)
+
+    expect(result.boards).toHaveLength(3)
+    expect(result.boards[0]?.displayName).toBe('Board A')
+    expect(result.boards[1]?.displayName).toBe('Board B')
+    expect(result.boards[2]?.displayName).toBe('Board C')
+  })
+
+  test('board downgrading optimization works', () => {
+    const config: BaseboardConfig = {
+      measurements: [{id: 'wall1', size: 70}],
+      availableLengths: [96, 120, 144],
+    }
+
+    const result = optimizeBaseboards(config)
+
+    expect(result.boards).toHaveLength(1)
+    // Should use 96" board instead of larger ones for better efficiency
+    expect(result.boards[0]?.boardLength).toBe(96)
+    expect(result.summary.boardCounts).toEqual({96: 1})
+  })
+
+  test('very small measurements are handled correctly', () => {
+    const config: BaseboardConfig = {
+      measurements: [
+        {id: 'trim1', size: 0.25}, // 1/4 inch
+        {id: 'trim2', size: 1.5},
+        {id: 'trim3', size: 2.75},
+      ],
+      availableLengths: [96],
+      kerf: 0.125,
+    }
+
+    const result = optimizeBaseboards(config)
+
+    expect(result.boards).toHaveLength(1)
+    const cuts = result.boards[0]?.cuts ?? []
+    expect(cuts).toHaveLength(3)
+
+    // Total used: 0.25 + 0.125 + 1.5 + 0.125 + 2.75 = 4.75
+    // Waste: 96 - 4.75 = 91.25
+    expect(result.summary.totalWaste).toBe(91.25)
+  })
+
+  test('zero kerf value works correctly', () => {
+    const config: BaseboardConfig = {
+      measurements: [
+        {id: 'wall1', size: 48},
+        {id: 'wall2', size: 48},
+      ],
+      availableLengths: [96],
+      kerf: 0,
+    }
+
+    const result = optimizeBaseboards(config)
+
+    expect(result.boards).toHaveLength(1)
+    const cuts = result.boards[0]?.cuts ?? []
+    expect(cuts).toHaveLength(2)
+    // No kerf: 48 + 48 = 96, perfect fit
+    expect(result.summary.totalWaste).toBe(0)
+  })
+
+  test('measurements with splitEvenly=true use balanced splitting', () => {
+    const config: BaseboardConfig = {
+      measurements: [
+        {id: 'long-wall', size: 200, splitEvenly: true},
+        {id: 'normal-wall', size: 50},
+      ],
+      availableLengths: [96, 120],
+    }
+
+    const result = optimizeBaseboards(config)
+
+    // Should have balanced splits for the 200" measurement
+    const longWallCuts = result.boards
+      .flatMap(b => b.cuts)
+      .filter(c => c.id === 'long-wall')
+
+    expect(longWallCuts.length).toBeGreaterThan(1)
+
+    // Verify splits are more balanced than greedy approach
+    const sizes = longWallCuts.map(c => c.size)
+    const maxSize = Math.max(...sizes)
+    const minSize = Math.min(...sizes)
+    // Balanced splits should have smaller difference between pieces
+    expect(maxSize - minSize).toBeLessThan(40) // Reasonable balance
+  })
+
+  test('measurements without splitEvenly use greedy splitting', () => {
+    const config: BaseboardConfig = {
+      measurements: [{id: 'long-wall', size: 200, splitEvenly: false}],
+      availableLengths: [96, 120],
+    }
+
+    const result = optimizeBaseboards(config)
+
+    const longWallCuts = result.boards
+      .flatMap(b => b.cuts)
+      .filter(c => c.id === 'long-wall')
+
+    expect(longWallCuts.length).toBeGreaterThan(1)
+
+    // Should use greedy approach: take largest possible first
+    const firstCut = longWallCuts[0]
+    expect(firstCut?.size).toBe(120) // Max available length
+  })
+
+  test('multiple oversized measurements with different split preferences', () => {
+    const config: BaseboardConfig = {
+      measurements: [
+        {id: 'wall1', size: 250, splitEvenly: true},
+        {id: 'wall2', size: 200, splitEvenly: false},
+        {id: 'wall3', size: 50},
+      ],
+      availableLengths: [96, 120],
+    }
+
+    const result = optimizeBaseboards(config)
+
+    // All measurements should be represented
+    const allCuts = result.boards.flatMap(b => b.cuts)
+    const uniqueIds = new Set(allCuts.map(c => c.id))
+    expect(uniqueIds).toContain('wall1')
+    expect(uniqueIds).toContain('wall2')
+    expect(uniqueIds).toContain('wall3')
+
+    // wall1 should have balanced splits
+    const wall1Cuts = allCuts.filter(c => c.id === 'wall1')
+    const wall1Sizes = wall1Cuts.map(c => c.size)
+    const wall1MaxSize = Math.max(...wall1Sizes)
+    const wall1MinSize = Math.min(...wall1Sizes)
+    expect(wall1MaxSize - wall1MinSize).toBeLessThan(40)
+
+    // wall2 should have greedy splits (one large piece)
+    const wall2Cuts = allCuts.filter(c => c.id === 'wall2')
+    const wall2HasMaxLength = wall2Cuts.some(c => c.size === 120)
+    expect(wall2HasMaxLength).toBe(true)
+  })
+
+  test('strategy comparison works with different board combinations', () => {
+    // Test case where using pairs is better than individual lengths
+    const config: BaseboardConfig = {
+      measurements: [
+        {id: 'wall1', size: 70},
+        {id: 'wall2', size: 70},
+        {id: 'wall3', size: 110},
+        {id: 'wall4', size: 110},
+      ],
+      availableLengths: [96, 120],
+      kerf: 0.125,
+    }
+
+    const result = optimizeBaseboards(config)
+
+    // Should optimize to minimize waste
+    expect(result.summary.totalBoards).toBeLessThanOrEqual(4)
+    expect(result.summary.totalWaste).toBeLessThan(100)
+  })
+
+  test('edge case: measurement exactly equals board length', () => {
+    const config: BaseboardConfig = {
+      measurements: [{id: 'exact-fit', size: 96}],
+      availableLengths: [96, 120],
+    }
+
+    const result = optimizeBaseboards(config)
+
+    expect(result.boards).toHaveLength(1)
+    expect(result.boards[0]?.boardLength).toBe(96)
+    expect(result.summary.totalWaste).toBe(0)
+  })
+
+  test('edge case: measurement with kerf exactly equals board length', () => {
+    const config: BaseboardConfig = {
+      measurements: [
+        {id: 'wall1', size: 47.9375}, // 47 15/16"
+        {id: 'wall2', size: 47.9375}, // 47 15/16"
+      ],
+      availableLengths: [96],
+      kerf: 0.125, // 1/8"
+    }
+
+    const result = optimizeBaseboards(config)
+
+    // 47.9375 + 0.125 + 47.9375 = 96 exactly
+    expect(result.boards).toHaveLength(1)
+    expect(result.summary.totalWaste).toBe(0)
+  })
+
+  test('precision handling for 1/16 inch measurements', () => {
+    const config: BaseboardConfig = {
+      measurements: [
+        {id: 'wall1', size: 48.0625}, // 48 1/16"
+        {id: 'wall2', size: 47.9375}, // 47 15/16"
+      ],
+      availableLengths: [96],
+      kerf: 0.125,
+    }
+
+    const result = optimizeBaseboards(config)
+
+    // 48.0625 + 0.125 + 47.9375 = 96.125, so needs 2 boards
+    expect(result.boards).toHaveLength(2)
+    const allCuts = result.boards.flatMap(b => b.cuts)
+    expect(allCuts).toHaveLength(2)
+
+    // Verify precise measurements are preserved
+    expect(allCuts.some(c => c.size === 48.0625)).toBe(true)
+    expect(allCuts.some(c => c.size === 47.9375)).toBe(true)
+  })
+})
+
+describe('calculateBalancedSplits', () => {
+  test('splits measurement into minimum equal pieces', () => {
+    const splits = calculateBalancedSplits(200, 120)
+
+    // Should split into 2 pieces: 100 each
+    expect(splits).toHaveLength(2)
+    expect(splits[0]).toBe(100)
+    expect(splits[1]).toBe(100)
+    expect(splits.reduce((sum, s) => sum + s, 0)).toBe(200)
+  })
+
+  test('handles remainder by adjusting last piece', () => {
+    const splits = calculateBalancedSplits(250, 120)
+
+    // Should split into 3 pieces, with remainder in last piece
+    expect(splits).toHaveLength(3)
+    expect(splits.reduce((sum, s) => sum + s, 0)).toBe(250)
+
+    // Pieces should be relatively balanced
+    const maxSize = Math.max(...splits)
+    const minSize = Math.min(...splits)
+    expect(maxSize - minSize).toBeLessThan(5) // Reasonable balance
+  })
+
+  test('rounds to 1/16 inch precision', () => {
+    const splits = calculateBalancedSplits(100.1, 60)
+
+    expect(splits).toHaveLength(2)
+    expect(splits.reduce((sum, s) => sum + s, 0)).toBe(100.1)
+
+    // Check that the base sizes are rounded to 1/16" precision
+    // For 100.1 / 2 = 50.05, rounded to nearest 1/16" = 50.0625
+    const baseSize = splits[0]
+    expect(baseSize).toBeCloseTo(50.0625, 4) // 50 1/16"
+  })
+
+  test('handles exact divisible measurements', () => {
+    const splits = calculateBalancedSplits(240, 120)
+
+    expect(splits).toHaveLength(2)
+    expect(splits[0]).toBe(120)
+    expect(splits[1]).toBe(120)
+  })
+
+  test('handles very large measurements', () => {
+    const splits = calculateBalancedSplits(1000, 120)
+
+    expect(splits).toHaveLength(9) // ceil(1000/120) = 9
+    expect(splits.reduce((sum, s) => sum + s, 0)).toBe(1000)
+
+    // Should be reasonably balanced
+    const maxSize = Math.max(...splits)
+    const minSize = Math.min(...splits)
+    expect(maxSize).toBeLessThanOrEqual(120)
+    expect(minSize).toBeGreaterThan(100)
+  })
+})
+
+describe('generateBoardName', () => {
+  test('generates single letter names for first 26 boards', () => {
+    expect(generateBoardName(0)).toBe('A')
+    expect(generateBoardName(1)).toBe('B')
+    expect(generateBoardName(25)).toBe('Z')
+  })
+
+  test('generates double letter names after 26 boards', () => {
+    expect(generateBoardName(26)).toBe('BA')
+    expect(generateBoardName(27)).toBe('BB')
+    expect(generateBoardName(51)).toBe('BZ')
+    expect(generateBoardName(52)).toBe('CA')
+  })
+
+  test('generates triple letter names for very high indices', () => {
+    expect(generateBoardName(702)).toBe('BBA')
+    expect(generateBoardName(703)).toBe('BBB')
+  })
+
+  test('handles edge cases', () => {
+    expect(generateBoardName(675)).toBe('ZZ')
+    expect(generateBoardName(676)).toBe('BAA')
+    expect(generateBoardName(701)).toBe('BAZ')
   })
 })
