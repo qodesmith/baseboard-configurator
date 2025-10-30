@@ -73,7 +73,7 @@ export function calculateBalancedSplits(
   totalSize: number,
   maxBoardLength: number
 ): number[] {
-  const precision = 0.0625 // 1/16"
+  const precision = 1 / 16
 
   // Calculate minimum number of pieces needed
   const numPieces = Math.ceil(totalSize / maxBoardLength)
@@ -93,6 +93,35 @@ export function calculateBalancedSplits(
   pieces[numPieces - 1] += diff
 
   return pieces
+}
+
+/**
+ * Calculate summary statistics for optimized baseboard results including total
+ * boards, board counts by length, and total waste.
+ */
+export function calculateSummaryStats(
+  boards: Board[],
+  calculateUsed: (cuts: Cut[]) => number
+): BaseboardResult['summary'] {
+  const totalBoards = boards.length
+  const boardCounts: Record<number, number> = {}
+  let totalWaste = 0
+
+  for (const board of boards) {
+    // Count boards by length
+    boardCounts[board.boardLength] = (boardCounts[board.boardLength] || 0) + 1
+
+    // Calculate waste
+    const used = calculateUsed(board.cuts)
+    const waste = board.boardLength - used
+    totalWaste += waste
+  }
+
+  return {
+    totalBoards,
+    boardCounts,
+    totalWaste,
+  }
 }
 
 export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
@@ -442,19 +471,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
   }
 
   // Calculate summary statistics
-  const totalBoards = bestBoards.length
-  const boardCounts: Record<number, number> = {}
-  let totalWaste = 0
-
-  for (const board of bestBoards) {
-    // Count boards by length
-    boardCounts[board.boardLength] = (boardCounts[board.boardLength] || 0) + 1
-
-    // Calculate waste
-    const used = calculateUsed(board.cuts)
-    const waste = board.boardLength - used
-    totalWaste += waste
-  }
+  const summary = calculateSummaryStats(bestBoards, calculateUsed)
 
   // Assign display names to boards
   const boardsWithNames = bestBoards.map((board, index) => ({
@@ -464,10 +481,6 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
 
   return {
     boards: boardsWithNames,
-    summary: {
-      totalBoards,
-      boardCounts,
-      totalWaste,
-    },
+    summary,
   }
 }

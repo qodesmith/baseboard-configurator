@@ -4,6 +4,7 @@ import {describe, expect, test} from 'bun:test'
 
 import {
   calculateBalancedSplits,
+  calculateSummaryStats,
   generateBoardName,
   optimizeBaseboards,
 } from './utils'
@@ -659,5 +660,241 @@ describe('generateBoardName', () => {
     expect(generateBoardName(675)).toBe('ZZ')
     expect(generateBoardName(676)).toBe('BAA')
     expect(generateBoardName(701)).toBe('BAZ')
+  })
+})
+
+describe('calculateSummaryStats', () => {
+  // Helper function to create a calculateUsed function with kerf
+  const createCalculateUsed =
+    (kerf = 0.125) =>
+    (cuts: {size: number}[]) => {
+      if (cuts.length === 0) return 0
+      const cutsTotal = cuts.reduce((sum, cut) => sum + cut.size, 0)
+      const kerfTotal = (cuts.length - 1) * kerf
+      return cutsTotal + kerfTotal
+    }
+
+  test('calculates stats for empty boards array', () => {
+    const calculateUsed = createCalculateUsed()
+    const result = calculateSummaryStats([], calculateUsed)
+
+    expect(result.totalBoards).toBe(0)
+    expect(result.boardCounts).toEqual({})
+    expect(result.totalWaste).toBe(0)
+  })
+
+  test('calculates stats for single board with one cut', () => {
+    const boards = [
+      {
+        boardLength: 96,
+        cuts: [{id: 'cut1', size: 50}],
+      },
+    ]
+    const calculateUsed = createCalculateUsed()
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(1)
+    expect(result.boardCounts).toEqual({96: 1})
+    expect(result.totalWaste).toBe(46) // 96 - 50 = 46
+  })
+
+  test('calculates stats for single board with multiple cuts', () => {
+    const boards = [
+      {
+        boardLength: 96,
+        cuts: [
+          {id: 'cut1', size: 40},
+          {id: 'cut2', size: 30},
+        ],
+      },
+    ]
+    const calculateUsed = createCalculateUsed(0.125)
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(1)
+    expect(result.boardCounts).toEqual({96: 1})
+    // Used: 40 + 0.125 + 30 = 70.125, Waste: 96 - 70.125 = 25.875
+    expect(result.totalWaste).toBe(25.875)
+  })
+
+  test('calculates stats for multiple boards of same length', () => {
+    const boards = [
+      {
+        boardLength: 96,
+        cuts: [{id: 'cut1', size: 50}],
+      },
+      {
+        boardLength: 96,
+        cuts: [{id: 'cut2', size: 60}],
+      },
+      {
+        boardLength: 96,
+        cuts: [{id: 'cut3', size: 40}],
+      },
+    ]
+    const calculateUsed = createCalculateUsed()
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(3)
+    expect(result.boardCounts).toEqual({96: 3})
+    // Waste: (96-50) + (96-60) + (96-40) = 46 + 36 + 56 = 138
+    expect(result.totalWaste).toBe(138)
+  })
+
+  test('calculates stats for multiple boards of different lengths', () => {
+    const boards = [
+      {
+        boardLength: 96,
+        cuts: [{id: 'cut1', size: 50}],
+      },
+      {
+        boardLength: 120,
+        cuts: [{id: 'cut2', size: 100}],
+      },
+      {
+        boardLength: 144,
+        cuts: [{id: 'cut3', size: 130}],
+      },
+      {
+        boardLength: 96,
+        cuts: [{id: 'cut4', size: 80}],
+      },
+    ]
+    const calculateUsed = createCalculateUsed()
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(4)
+    expect(result.boardCounts).toEqual({96: 2, 120: 1, 144: 1})
+    // Waste: (96-50) + (120-100) + (144-130) + (96-80) = 46 + 20 + 14 + 16 = 96
+    expect(result.totalWaste).toBe(96)
+  })
+
+  test('calculates stats with zero kerf', () => {
+    const boards = [
+      {
+        boardLength: 96,
+        cuts: [
+          {id: 'cut1', size: 48},
+          {id: 'cut2', size: 48},
+        ],
+      },
+    ]
+    const calculateUsed = createCalculateUsed(0) // No kerf
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(1)
+    expect(result.boardCounts).toEqual({96: 1})
+    expect(result.totalWaste).toBe(0) // Perfect fit: 48 + 48 = 96
+  })
+
+  test('calculates stats with larger kerf value', () => {
+    const boards = [
+      {
+        boardLength: 96,
+        cuts: [
+          {id: 'cut1', size: 40},
+          {id: 'cut2', size: 30},
+        ],
+      },
+    ]
+    const calculateUsed = createCalculateUsed(0.25) // Larger kerf
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(1)
+    expect(result.boardCounts).toEqual({96: 1})
+    // Used: 40 + 0.25 + 30 = 70.25, Waste: 96 - 70.25 = 25.75
+    expect(result.totalWaste).toBe(25.75)
+  })
+
+  test('calculates stats for board with no cuts', () => {
+    const boards = [
+      {
+        boardLength: 96,
+        cuts: [],
+      },
+    ]
+    const calculateUsed = createCalculateUsed()
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(1)
+    expect(result.boardCounts).toEqual({96: 1})
+    expect(result.totalWaste).toBe(96) // Entire board is waste
+  })
+
+  test('calculates stats for mix of boards with and without cuts', () => {
+    const boards = [
+      {
+        boardLength: 96,
+        cuts: [{id: 'cut1', size: 50}],
+      },
+      {
+        boardLength: 120,
+        cuts: [],
+      },
+      {
+        boardLength: 96,
+        cuts: [
+          {id: 'cut2', size: 30},
+          {id: 'cut3', size: 20},
+        ],
+      },
+    ]
+    const calculateUsed = createCalculateUsed(0.125)
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(3)
+    expect(result.boardCounts).toEqual({96: 2, 120: 1})
+    // Waste: (96-50) + 120 + (96-(30+0.125+20)) = 46 + 120 + 45.875 = 211.875
+    expect(result.totalWaste).toBe(211.875)
+  })
+
+  test('calculates stats with precise measurements', () => {
+    const boards = [
+      {
+        boardLength: 96,
+        cuts: [
+          {id: 'cut1', size: 48.0625}, // 48 1/16"
+          {id: 'cut2', size: 47.8125}, // 47 13/16"
+        ],
+      },
+    ]
+    const calculateUsed = createCalculateUsed(0.125)
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(1)
+    expect(result.boardCounts).toEqual({96: 1})
+    // Used: 48.0625 + 0.125 + 47.8125 = 96, Waste: 96 - 96 = 0
+    expect(result.totalWaste).toBe(0)
+  })
+
+  test('calculates stats for large number of boards', () => {
+    const boards = Array.from({length: 100}, (_, i) => ({
+      boardLength: i % 2 === 0 ? 96 : 120,
+      cuts: [{id: `cut${i}`, size: 50}],
+    }))
+    const calculateUsed = createCalculateUsed()
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(100)
+    expect(result.boardCounts).toEqual({96: 50, 120: 50})
+    // Waste: 50 boards with (96-50=46) + 50 boards with (120-50=70) = 2300 + 3500 = 5800
+    expect(result.totalWaste).toBe(5800)
+  })
+
+  test('board counts accumulate correctly for duplicate lengths', () => {
+    const boards = [
+      {boardLength: 96, cuts: [{id: 'cut1', size: 50}]},
+      {boardLength: 120, cuts: [{id: 'cut2', size: 60}]},
+      {boardLength: 96, cuts: [{id: 'cut3', size: 70}]},
+      {boardLength: 120, cuts: [{id: 'cut4', size: 80}]},
+      {boardLength: 96, cuts: [{id: 'cut5', size: 40}]},
+      {boardLength: 144, cuts: [{id: 'cut6', size: 100}]},
+      {boardLength: 120, cuts: [{id: 'cut7', size: 90}]},
+    ]
+    const calculateUsed = createCalculateUsed()
+    const result = calculateSummaryStats(boards, calculateUsed)
+
+    expect(result.totalBoards).toBe(7)
+    expect(result.boardCounts).toEqual({96: 3, 120: 3, 144: 1})
   })
 })
