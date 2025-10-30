@@ -9,15 +9,17 @@ import {
 } from '@/components/ui/card'
 import {cn} from '@/lib/utils'
 
+import {useAtomValue} from 'jotai'
 import {Package, Ruler, TrendingDown} from 'lucide-react'
+
+import {focusedRoomAtom} from '../lib/globalState'
 
 interface ResultsDisplayProps {
   results: BaseboardResult | null
-  focusedRoom: string | null
 }
 
 // Color palette for different cuts
-const COLORS = [
+const colors = [
   'bg-blue-500',
   'bg-green-500',
   'bg-purple-500',
@@ -30,7 +32,9 @@ const COLORS = [
   'bg-cyan-500',
 ]
 
-export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
+export function ResultsDisplay({results}: ResultsDisplayProps) {
+  const focusedRoom = useAtomValue(focusedRoomAtom)
+
   if (!results) {
     return (
       <Card className="h-full">
@@ -67,7 +71,7 @@ export function ResultsDisplay({results, focusedRoom}: ResultsDisplayProps) {
   filteredBoards.forEach(board => {
     board.cuts.forEach(cut => {
       if (!colorMap.has(cut.id)) {
-        const color = COLORS[colorIndex % COLORS.length]
+        const color = colors[colorIndex % colors.length]
         colorMap.set(cut.id, color || 'bg-gray-500')
         colorIndex++
       }

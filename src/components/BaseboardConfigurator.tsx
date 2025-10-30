@@ -2,7 +2,6 @@ import type {BaseboardResult} from '@/lib/utils'
 
 import {
   availableBoardLengthsSelector,
-  focusedRoomAtom,
   kerfAtom,
   measurementsAtom,
 } from '@/lib/globalState'
@@ -23,7 +22,6 @@ export function BaseboardConfigurator() {
   const availableBoardLengths = useAtomValue(availableBoardLengthsSelector)
   const kerf = useAtomValue(kerfAtom)
   const [results, setResults] = useState<BaseboardResult | null>(null)
-  const focusedRoom = useAtomValue(focusedRoomAtom)
 
   // Auto-calculate whenever inputs change
   useEffect(() => {
@@ -64,9 +62,7 @@ export function BaseboardConfigurator() {
         </div>
 
         {/* Right Column - Results */}
-        <div>
-          <ResultsDisplay results={results} focusedRoom={focusedRoom} />
-        </div>
+        <ResultsDisplay results={results} />
       </div>
     </div>
   )
