@@ -14,7 +14,7 @@ import {
   currentConfigNameAtom,
   kerfAtom,
   measurementsAtom,
-} from '@/lib/atoms'
+} from '@/lib/globalState'
 
 import {useSetAtom} from 'jotai'
 import {Trash2} from 'lucide-react'

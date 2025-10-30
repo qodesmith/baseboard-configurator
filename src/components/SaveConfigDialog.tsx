@@ -14,7 +14,7 @@ import {
   currentConfigNameAtom,
   kerfAtom,
   measurementsAtom,
-} from '@/lib/atoms'
+} from '@/lib/globalState'
 
 import {useAtom, useAtomValue} from 'jotai'
 import {useId, useState} from 'react'

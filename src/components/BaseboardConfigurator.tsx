@@ -9,7 +9,11 @@ import {
 } from '@/components/ui/card'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {availableLengthsAtom, kerfAtom, measurementsAtom} from '@/lib/atoms'
+import {
+  availableLengthsAtom,
+  kerfAtom,
+  measurementsAtom,
+} from '@/lib/globalState'
 import {optimizeBaseboards} from '@/lib/utils'
 
 import {useAtom} from 'jotai'

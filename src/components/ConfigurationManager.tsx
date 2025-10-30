@@ -26,7 +26,7 @@ import {
   DEFAULT_KERF,
   kerfAtom,
   measurementsAtom,
-} from '@/lib/atoms'
+} from '@/lib/globalState'
 
 import {useAtom, useAtomValue, useSetAtom} from 'jotai'
 import {Copy, Download, RotateCcw, Save} from 'lucide-react'
