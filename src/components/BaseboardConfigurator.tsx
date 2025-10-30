@@ -11,27 +11,28 @@ import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {
   availableLengthsAtom,
+  focusedRoomAtom,
   kerfAtom,
   measurementsAtom,
 } from '@/lib/globalState'
 import {optimizeBaseboards} from '@/lib/utils'
 
-import {useAtom} from 'jotai'
+import {useAtom, useAtomValue} from 'jotai'
 import {useEffect, useId, useState} from 'react'
 
 import {BoardLengthSelector} from './BoardLengthSelector'
 import {ConfigurationManager} from './ConfigurationManager'
 import {Header} from './Header'
-import {MeasurementInputs} from './MeasurementInputs'
+import {MeasurementsSection} from './MeasurementsSection'
 import {ResultsDisplay} from './ResultsDisplay'
 
 export function BaseboardConfigurator() {
   const kerfId = useId()
-  const [measurements, setMeasurements] = useAtom(measurementsAtom)
+  const measurements = useAtomValue(measurementsAtom)
   const [availableLengths, setAvailableLengths] = useAtom(availableLengthsAtom)
   const [kerf, setKerf] = useAtom(kerfAtom)
   const [results, setResults] = useState<BaseboardResult | null>(null)
-  const [focusedRoom, setFocusedRoom] = useState<string | null>(null)
+  const focusedRoom = useAtomValue(focusedRoomAtom)
 
   // Auto-calculate whenever inputs change
   useEffect(() => {
@@ -62,23 +63,7 @@ export function BaseboardConfigurator() {
           <ConfigurationManager results={results} />
 
           {/* Measurements Input */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Measurements</CardTitle>
-              <CardDescription>
-                Add your wall measurements in inches
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <MeasurementInputs
-                measurements={measurements}
-                onChange={setMeasurements}
-                availableLengths={availableLengths}
-                focusedRoom={focusedRoom}
-                onFocusedRoomChange={setFocusedRoom}
-              />
-            </CardContent>
-          </Card>
+          <MeasurementsSection />
 
           {/* Board Lengths Selection */}
           <Card>

@@ -17,4 +17,8 @@ export const availableLengthsAtom = atom<number[]>(DEFAULT_BOARD_LENGTHS)
 
 export const kerfAtom = atom<number>(DEFAULT_KERF)
 
+// TODO - string | undefined instead?
 export const currentConfigNameAtom = atom<string | null>(null)
+
+// TODO - string | undefined instead?
+export const focusedRoomAtom = atom<string | null>(null)
