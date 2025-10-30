@@ -16,6 +16,7 @@ import {
   focusedRoomAtom,
   measurementsAtom,
 } from '../lib/globalState'
+import {formatAsFraction} from '../lib/measurementInputUtils'
 
 export function MeasurementInputs() {
   const availableLengths = useAtomValue(availableLengthsAtom)
@@ -29,45 +30,6 @@ export function MeasurementInputs() {
   // Calculate max board length
   const maxBoardLength =
     availableLengths.length > 0 ? Math.max(...availableLengths) : Infinity
-
-  // Helper to format a size as a fraction (e.g., 83.3125 => "83 5/16")
-  const formatAsFraction = (size: number): string => {
-    const whole = Math.floor(size)
-    const decimal = size - whole
-
-    // Common fractions for 1/16" precision
-    const fractions: [number, string][] = [
-      [0, ''],
-      [0.0625, '1/16'],
-      [0.125, '1/8'],
-      [0.1875, '3/16'],
-      [0.25, '1/4'],
-      [0.3125, '5/16'],
-      [0.375, '3/8'],
-      [0.4375, '7/16'],
-      [0.5, '1/2'],
-      [0.5625, '9/16'],
-      [0.625, '5/8'],
-      [0.6875, '11/16'],
-      [0.75, '3/4'],
-      [0.8125, '13/16'],
-      [0.875, '7/8'],
-      [0.9375, '15/16'],
-    ]
-
-    // Find closest fraction
-    const closest = fractions.reduce((prev, curr) => {
-      return Math.abs(curr[0] - decimal) < Math.abs(prev[0] - decimal)
-        ? curr
-        : prev
-    })
-
-    if (closest[1] === '') {
-      return `${whole.toString()}"`
-    }
-
-    return whole > 0 ? `${whole} ${closest[1]}"` : `${closest[1]}"`
-  }
 
   // Group measurements by room
   const groupedMeasurements = measurements.reduce(
