@@ -4,6 +4,8 @@ import {clsx} from 'clsx'
 import {toast} from 'sonner'
 import {twMerge} from 'tailwind-merge'
 
+import {DEFAULT_KERF} from './globalState'
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -96,12 +98,22 @@ export function calculateBalancedSplits(
 }
 
 /**
+ * Calculate used space on a board including cuts and kerf.
+ */
+export function calculateUsed(cuts: Cut[], kerf: number): number {
+  if (cuts.length === 0) return 0
+  const cutsTotal = cuts.reduce((sum, cut) => sum + cut.size, 0)
+  const kerfTotal = (cuts.length - 1) * kerf
+  return cutsTotal + kerfTotal
+}
+
+/**
  * Calculate summary statistics for optimized baseboard results including total
  * boards, board counts by length, and total waste.
  */
 export function calculateSummaryStats(
   boards: Board[],
-  calculateUsed: (cuts: Cut[]) => number
+  kerf: number
 ): BaseboardResult['summary'] {
   const totalBoards = boards.length
   const boardCounts: Record<number, number> = {}
@@ -112,7 +124,7 @@ export function calculateSummaryStats(
     boardCounts[board.boardLength] = (boardCounts[board.boardLength] || 0) + 1
 
     // Calculate waste
-    const used = calculateUsed(board.cuts)
+    const used = calculateUsed(board.cuts, kerf)
     const waste = board.boardLength - used
     totalWaste += waste
   }
@@ -125,10 +137,11 @@ export function calculateSummaryStats(
 }
 
 export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
-  const {measurements, availableLengths, kerf = 0.125} = config
+  const {measurements, availableLengths, kerf = DEFAULT_KERF} = config
 
   if (availableLengths.length === 0) {
     toast.error('No available board lengths provided')
+
     return {
       boards: [],
       summary: {
@@ -142,17 +155,9 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
   // Sort available lengths
   const sortedLengths = [...availableLengths].sort((a, b) => a - b)
 
-  // Helper: calculate used space on a board
-  const calculateUsed = (cuts: Cut[]): number => {
-    if (cuts.length === 0) return 0
-    const cutsTotal = cuts.reduce((sum, cut) => sum + cut.size, 0)
-    const kerfTotal = (cuts.length - 1) * kerf
-    return cutsTotal + kerfTotal
-  }
-
   // Helper: check if a cut fits in a board
   const canFit = (board: Board, cutSize: number): boolean => {
-    const currentUsed = calculateUsed(board.cuts)
+    const currentUsed = calculateUsed(board.cuts, kerf)
     const kerfNeeded = board.cuts.length > 0 ? kerf : 0
     return currentUsed + kerfNeeded + cutSize <= board.boardLength
   }
@@ -160,7 +165,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
   // Helper: calculate total waste for a set of boards
   const calculateTotalWaste = (boards: Board[]): number => {
     return boards.reduce((total, board) => {
-      const used = calculateUsed(board.cuts)
+      const used = calculateUsed(board.cuts, kerf)
       return total + (board.boardLength - used)
     }, 0)
   }
@@ -258,7 +263,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
         const board = boards[i]
 
         if (board && canFit(board, measurement.size)) {
-          const currentUsed = calculateUsed(board.cuts)
+          const currentUsed = calculateUsed(board.cuts, kerf)
           const kerfNeeded = board.cuts.length > 0 ? kerf : 0
           const remainingAfter =
             board.boardLength - (currentUsed + kerfNeeded + measurement.size)
@@ -405,7 +410,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
             const board = bestBoards[i]
 
             if (board && canFit(board, splitSize)) {
-              const currentUsed = calculateUsed(board.cuts)
+              const currentUsed = calculateUsed(board.cuts, kerf)
               const kerfNeeded = board.cuts.length > 0 ? kerf : 0
               const remainingAfter =
                 board.boardLength - (currentUsed + kerfNeeded + splitSize)
@@ -453,7 +458,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
    * when possible
    */
   for (const board of bestBoards) {
-    const currentUsed = calculateUsed(board.cuts)
+    const currentUsed = calculateUsed(board.cuts, kerf)
 
     // Find the smallest available board length that can fit all cuts
     let bestSmallerLength: number | null = null
@@ -471,7 +476,7 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
   }
 
   // Calculate summary statistics
-  const summary = calculateSummaryStats(bestBoards, calculateUsed)
+  const summary = calculateSummaryStats(bestBoards, kerf)
 
   // Assign display names to boards
   const boardsWithNames = bestBoards.map((board, index) => ({
