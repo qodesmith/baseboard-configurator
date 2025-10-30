@@ -1,15 +1,6 @@
 import type {BaseboardResult} from '@/lib/utils'
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
-import {
   availableBoardLengthsSelector,
   focusedRoomAtom,
   kerfAtom,
@@ -17,20 +8,20 @@ import {
 } from '@/lib/globalState'
 import {optimizeBaseboards} from '@/lib/utils'
 
-import {useAtom, useAtomValue} from 'jotai'
-import {useEffect, useId, useState} from 'react'
+import {useAtomValue} from 'jotai'
+import {useEffect, useState} from 'react'
 
 import {BoardLengthsSection} from './BoardLengthsSection'
 import {ConfigurationManager} from './ConfigurationManager'
 import {Header} from './Header'
+import {KerfSection} from './KerfSection'
 import {MeasurementsSection} from './MeasurementsSection'
 import {ResultsDisplay} from './ResultsDisplay'
 
 export function BaseboardConfigurator() {
-  const kerfId = useId()
   const measurements = useAtomValue(measurementsAtom)
   const availableBoardLengths = useAtomValue(availableBoardLengthsSelector)
-  const [kerf, setKerf] = useAtom(kerfAtom)
+  const kerf = useAtomValue(kerfAtom)
   const [results, setResults] = useState<BaseboardResult | null>(null)
   const focusedRoom = useAtomValue(focusedRoomAtom)
 
@@ -69,31 +60,7 @@ export function BaseboardConfigurator() {
           <BoardLengthsSection />
 
           {/* Kerf Input */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Saw Kerf</CardTitle>
-              <CardDescription>
-                Width of your saw blade cut (inches)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4">
-                <Label htmlFor={kerfId} className="min-w-fit">
-                  Kerf:
-                </Label>
-                <Input
-                  id={kerfId}
-                  type="number"
-                  step="0.001"
-                  min="0"
-                  value={kerf}
-                  onChange={e => setKerf(parseFloat(e.target.value) || 0)}
-                  className="max-w-32"
-                />
-                <span className="text-muted-foreground text-sm">inches</span>
-              </div>
-            </CardContent>
-          </Card>
+          <KerfSection />
         </div>
 
         {/* Right Column - Results */}

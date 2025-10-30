@@ -5,8 +5,6 @@ import {atomWithReset, splitAtom} from 'jotai/utils'
 
 export const store = createStore()
 
-export const DEFAULT_KERF = 1 / 8
-
 const initialMeasurements: Measurement[] = [
   {id: crypto.randomUUID(), size: 0, room: '', wall: ''},
 ]
@@ -28,7 +26,7 @@ export const availableBoardLengthsSelector = atom(get => {
   return boardLengths.filter(({enabled}) => enabled)
 })
 
-export const kerfAtom = atom<number>(DEFAULT_KERF)
+export const kerfAtom = atomWithReset<number>(1 / 8)
 
 // TODO - string | undefined instead?
 export const currentConfigNameAtom = atom<string | null>(null)
