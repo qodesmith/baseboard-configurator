@@ -9,7 +9,7 @@ import {calculateBalancedSplits, cn} from '@/lib/utils'
 
 import {useAtom, useAtomValue} from 'jotai'
 import {Home, Plus, Trash2} from 'lucide-react'
-import {useState} from 'react'
+import {useCallback, useMemo, useState} from 'react'
 
 import {
   availableLengthsAtom,
@@ -32,77 +32,98 @@ export function MeasurementInputs() {
     availableLengths.length > 0 ? Math.max(...availableLengths) : Infinity
 
   // Group measurements by room
-  const groupedMeasurements = measurements.reduce(
-    (acc, measurement) => {
-      const roomName = measurement.room || ''
-      if (!acc[roomName]) {
-        acc[roomName] = []
-      }
-      acc[roomName].push(measurement)
-      return acc
-    },
-    {} as Record<string, Measurement[]>
+  const groupedMeasurements = useMemo(
+    () =>
+      measurements.reduce(
+        (acc, measurement) => {
+          const roomName = measurement.room || ''
+          if (!acc[roomName]) {
+            acc[roomName] = []
+          }
+          acc[roomName].push(measurement)
+          return acc
+        },
+        {} as Record<string, Measurement[]>
+      ),
+    [measurements]
   )
 
-  const addRoom = () => {
+  const addRoom = useCallback(() => {
     // Add a new room with one empty measurement
     setMeasurements(currentMeasurements => [
       ...currentMeasurements,
       {id: crypto.randomUUID(), size: 0, room: '', wall: ''},
     ])
-  }
+  }, [setMeasurements])
 
-  const addMeasurementToRoom = (roomName: string) => {
-    setMeasurements(currentMeasurements => [
-      ...currentMeasurements,
-      {id: crypto.randomUUID(), size: 0, room: roomName, wall: ''},
-    ])
-  }
+  const addMeasurementToRoom = useCallback(
+    (roomName: string) => {
+      setMeasurements(currentMeasurements => [
+        ...currentMeasurements,
+        {id: crypto.randomUUID(), size: 0, room: roomName, wall: ''},
+      ])
+    },
+    [setMeasurements]
+  )
 
-  const removeMeasurement = (id: string) => {
-    if (measurements.length === 1) {
-      // Keep at least one measurement
-      return
-    }
-    setMeasurements(currentMeasurements =>
-      currentMeasurements.filter(m => m.id !== id)
-    )
-  }
+  const removeMeasurement = useCallback(
+    (id: string) => {
+      if (measurements.length === 1) {
+        // Keep at least one measurement
+        return
+      }
 
-  const updateMeasurement = (id: string, updates: Partial<Measurement>) => {
-    setMeasurements(currentMeasurements =>
-      currentMeasurements.map(m => (m.id === id ? {...m, ...updates} : m))
-    )
-  }
-
-  const updateRoomName = (oldName: string, newName: string) => {
-    setMeasurements(currentMeasurements =>
-      currentMeasurements.map(m =>
-        m.room === oldName ? {...m, room: newName} : m
+      setMeasurements(currentMeasurements =>
+        currentMeasurements.filter(m => m.id !== id)
       )
-    )
-    setEditingRoomName(null)
-    setNewRoomName('')
-  }
+    },
+    [measurements.length, setMeasurements]
+  )
 
-  const removeRoom = (roomName: string) => {
-    const roomMeasurements = groupedMeasurements[roomName] || []
-    if (measurements.length === roomMeasurements.length) {
-      // Don't remove the last room
-      return
-    }
-    setMeasurements(currentMeasurements =>
-      currentMeasurements.filter(m => m.room !== roomName)
-    )
-  }
+  const updateMeasurement = useCallback(
+    (id: string, updates: Partial<Measurement>) => {
+      setMeasurements(currentMeasurements =>
+        currentMeasurements.map(m => (m.id === id ? {...m, ...updates} : m))
+      )
+    },
+    [setMeasurements]
+  )
 
-  const handleToggleRoom = (roomName: string) => {
-    if (focusedRoom === roomName) {
-      setFocusedRoom(null)
-    } else {
-      setFocusedRoom(roomName)
-    }
-  }
+  const updateRoomName = useCallback(
+    (oldName: string, newName: string) => {
+      setMeasurements(currentMeasurements =>
+        currentMeasurements.map(m =>
+          m.room === oldName ? {...m, room: newName} : m
+        )
+      )
+      setEditingRoomName(null)
+      setNewRoomName('')
+    },
+    [setMeasurements]
+  )
+
+  const removeRoom = useCallback(
+    (roomName: string) => {
+      const roomMeasurements = groupedMeasurements[roomName] || []
+      if (measurements.length === roomMeasurements.length) {
+        // Don't remove the last room
+        return
+      }
+      setMeasurements(currentMeasurements =>
+        currentMeasurements.filter(m => m.room !== roomName)
+      )
+    },
+    [groupedMeasurements, measurements.length, setMeasurements]
+  )
+
+  const handleToggleRoom = useCallback(
+    (roomName: string) => {
+      setFocusedRoom(currentRoom => {
+        return currentRoom === roomName ? null : roomName
+      })
+    },
+    [setFocusedRoom]
+  )
 
   return (
     <div className="space-y-4">
