@@ -3,8 +3,8 @@ import type {Measurement} from './utils'
 import {atom} from 'jotai'
 
 // Default values
-export const DEFAULT_BOARD_LENGTHS = [96, 120, 144]
-export const DEFAULT_KERF = 0.125
+export const DEFAULT_BOARD_LENGTHS = [8, 10, 12].map(feet => feet * 12)
+export const DEFAULT_KERF = 1 / 8
 
 // Atoms for application state (not auto-persisted)
 export const measurementsAtom = atom<Measurement[]>([
