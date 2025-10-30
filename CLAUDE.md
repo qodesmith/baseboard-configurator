@@ -48,7 +48,7 @@ Baseboard Configurator is a web application that optimizes baseboard cuts using 
 - `ConfigurationManager.tsx` - Save/load configurations
 
 ### State Management (Jotai)
-Located in `src/lib/atoms.ts`:
+Located in `src/lib/globalState.ts`:
 - `measurementsAtom` - Wall measurements with room/wall labels
 - `availableLengthsAtom` - Selected board lengths
 - `kerfAtom` - Saw blade width for cut calculations
