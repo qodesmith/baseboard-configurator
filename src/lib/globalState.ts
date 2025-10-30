@@ -28,8 +28,6 @@ export const availableBoardLengthsSelector = atom(get => {
 
 export const kerfAtom = atomWithReset<number>(1 / 8)
 
-// TODO - string | undefined instead?
 export const currentConfigNameAtom = atom<string | null>(null)
 
-// TODO - string | undefined instead?
 export const focusedRoomAtom = atom<string | null>(null)
