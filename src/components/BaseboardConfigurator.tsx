@@ -21,6 +21,7 @@ import {useEffect, useId, useState} from 'react'
 
 import {BoardLengthSelector} from './BoardLengthSelector'
 import {ConfigurationManager} from './ConfigurationManager'
+import {Header} from './Header'
 import {MeasurementInputs} from './MeasurementInputs'
 import {ResultsDisplay} from './ResultsDisplay'
 
@@ -53,13 +54,7 @@ export function BaseboardConfigurator() {
 
   return (
     <div className="container mx-auto max-w-7xl p-4 md:p-8">
-      <div className="mb-8 text-center">
-        <h1 className="mb-2 font-bold text-4xl">Baseboard Configurator</h1>
-        <p className="text-muted-foreground">
-          Optimize your baseboard cuts and minimize waste
-        </p>
-      </div>
-
+      <Header />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Left Column - Inputs */}
         <div className="space-y-6">
