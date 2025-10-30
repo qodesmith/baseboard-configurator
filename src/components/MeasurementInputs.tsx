@@ -187,7 +187,7 @@ export function MeasurementInputs() {
                         setEditingRoomName(roomName)
                         setNewRoomName(roomName)
                       }}
-                      className="flex-1 text-left font-semibold text-sm hover:text-primary"
+                      className="flex-1 cursor-text text-left font-semibold text-sm hover:text-primary"
                     >
                       {roomName || 'Unnamed Room'}
                     </button>
