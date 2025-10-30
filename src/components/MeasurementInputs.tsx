@@ -12,14 +12,16 @@ import {Home, Plus, Trash2} from 'lucide-react'
 import {useCallback, useMemo, useState} from 'react'
 
 import {
-  availableLengthsAtom,
+  availableBoardLengthsSelector,
   focusedRoomAtom,
   measurementsAtom,
 } from '../lib/globalState'
 import {formatAsFraction} from '../lib/measurementInputUtils'
 
 export function MeasurementInputs() {
-  const availableLengths = useAtomValue(availableLengthsAtom)
+  const availableLengths = useAtomValue(availableBoardLengthsSelector).map(
+    ({length}) => length
+  )
   const [measurements, setMeasurements] = useAtom(measurementsAtom)
   const [focusedRoom, setFocusedRoom] = useAtom(focusedRoomAtom)
 

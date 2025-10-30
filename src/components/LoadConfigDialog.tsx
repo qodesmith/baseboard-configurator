@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  availableLengthsAtom,
+  boardLengthsAtom,
   currentConfigNameAtom,
   kerfAtom,
   measurementsAtom,
@@ -34,7 +34,7 @@ interface SavedConfig {
 
 export function LoadConfigDialog({open, onOpenChange}: LoadConfigDialogProps) {
   const setMeasurements = useSetAtom(measurementsAtom)
-  const setAvailableLengths = useSetAtom(availableLengthsAtom)
+  const setBoardLengths = useSetAtom(boardLengthsAtom)
   const setKerf = useSetAtom(kerfAtom)
   const setCurrentConfigName = useSetAtom(currentConfigNameAtom)
   const [configs, setConfigs] = useState<Record<string, SavedConfig>>({})
@@ -59,7 +59,9 @@ export function LoadConfigDialog({open, onOpenChange}: LoadConfigDialogProps) {
     if (!config) return
 
     setMeasurements(config.measurements)
-    setAvailableLengths(config.availableLengths)
+    setBoardLengths(prev => {
+      return prev.filter(({length}) => config.availableLengths.includes(length))
+    })
     setKerf(config.kerf)
     setCurrentConfigName(configName)
 

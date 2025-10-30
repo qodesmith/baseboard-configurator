@@ -10,7 +10,7 @@ import {
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {
-  availableLengthsAtom,
+  availableBoardLengthsSelector,
   focusedRoomAtom,
   kerfAtom,
   measurementsAtom,
@@ -20,7 +20,7 @@ import {optimizeBaseboards} from '@/lib/utils'
 import {useAtom, useAtomValue} from 'jotai'
 import {useEffect, useId, useState} from 'react'
 
-import {BoardLengthSelector} from './BoardLengthSelector'
+import {BoardLengthsSection} from './BoardLengthsSection'
 import {ConfigurationManager} from './ConfigurationManager'
 import {Header} from './Header'
 import {MeasurementsSection} from './MeasurementsSection'
@@ -29,7 +29,7 @@ import {ResultsDisplay} from './ResultsDisplay'
 export function BaseboardConfigurator() {
   const kerfId = useId()
   const measurements = useAtomValue(measurementsAtom)
-  const [availableLengths, setAvailableLengths] = useAtom(availableLengthsAtom)
+  const availableBoardLengths = useAtomValue(availableBoardLengthsSelector)
   const [kerf, setKerf] = useAtom(kerfAtom)
   const [results, setResults] = useState<BaseboardResult | null>(null)
   const focusedRoom = useAtomValue(focusedRoomAtom)
@@ -39,19 +39,19 @@ export function BaseboardConfigurator() {
     // Filter out measurements with size 0 or empty
     const validMeasurements = measurements.filter(m => m.size > 0)
 
-    if (validMeasurements.length === 0 || availableLengths.length === 0) {
+    if (validMeasurements.length === 0 || availableBoardLengths.length === 0) {
       setResults(null)
       return
     }
 
     const result = optimizeBaseboards({
       measurements: validMeasurements,
-      availableLengths,
+      availableLengths: availableBoardLengths.map(({length}) => length),
       kerf,
     })
 
     setResults(result)
-  }, [measurements, availableLengths, kerf])
+  }, [availableBoardLengths, kerf, measurements.filter])
 
   return (
     <div className="container mx-auto max-w-7xl p-4 md:p-8">
@@ -66,20 +66,7 @@ export function BaseboardConfigurator() {
           <MeasurementsSection />
 
           {/* Board Lengths Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Available Board Lengths</CardTitle>
-              <CardDescription>
-                Select which board lengths are available (inches)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <BoardLengthSelector
-                selectedLengths={availableLengths}
-                onChange={setAvailableLengths}
-              />
-            </CardContent>
-          </Card>
+          <BoardLengthsSection />
 
           {/* Kerf Input */}
           <Card>

@@ -20,15 +20,16 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import {
-  availableLengthsAtom,
+  availableBoardLengthsSelector,
+  boardLengthsAtom,
   currentConfigNameAtom,
-  DEFAULT_BOARD_LENGTHS,
   DEFAULT_KERF,
   kerfAtom,
   measurementsAtom,
 } from '@/lib/globalState'
 
 import {useAtom, useAtomValue, useSetAtom} from 'jotai'
+import {RESET} from 'jotai/utils'
 import {Copy, Download, RotateCcw, Save} from 'lucide-react'
 import {useState} from 'react'
 import {toast} from 'sonner'
@@ -42,10 +43,12 @@ interface ConfigurationManagerProps {
 
 export function ConfigurationManager({results}: ConfigurationManagerProps) {
   const measurements = useAtomValue(measurementsAtom)
-  const availableLengths = useAtomValue(availableLengthsAtom)
   const kerf = useAtomValue(kerfAtom)
   const setMeasurements = useSetAtom(measurementsAtom)
-  const setAvailableLengths = useSetAtom(availableLengthsAtom)
+  const setBoardLengths = useSetAtom(boardLengthsAtom)
+  const availableLengths = useAtomValue(availableBoardLengthsSelector).map(
+    ({length}) => length
+  )
   const setKerf = useSetAtom(kerfAtom)
   const [currentConfigName, setCurrentConfigName] = useAtom(
     currentConfigNameAtom
@@ -90,8 +93,8 @@ export function ConfigurationManager({results}: ConfigurationManagerProps) {
   }
 
   const handleReset = () => {
-    setMeasurements([{id: crypto.randomUUID(), size: 0, room: '', wall: ''}])
-    setAvailableLengths(DEFAULT_BOARD_LENGTHS)
+    setMeasurements(RESET)
+    setBoardLengths(RESET)
     setKerf(DEFAULT_KERF)
     setCurrentConfigName(null)
   }

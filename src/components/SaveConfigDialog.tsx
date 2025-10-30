@@ -10,7 +10,7 @@ import {
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {
-  availableLengthsAtom,
+  availableBoardLengthsSelector,
   currentConfigNameAtom,
   kerfAtom,
   measurementsAtom,
@@ -34,7 +34,9 @@ interface SavedConfig {
 export function SaveConfigDialog({open, onOpenChange}: SaveConfigDialogProps) {
   const nameId = useId()
   const measurements = useAtomValue(measurementsAtom)
-  const availableLengths = useAtomValue(availableLengthsAtom)
+  const availableLengths = useAtomValue(availableBoardLengthsSelector).map(
+    ({length}) => length
+  )
   const kerf = useAtomValue(kerfAtom)
   const [_currentConfigName, setCurrentConfigName] = useAtom(
     currentConfigNameAtom
