@@ -7,24 +7,21 @@ import {Label} from '@/components/ui/label'
 import {Switch} from '@/components/ui/switch'
 import {calculateBalancedSplits, cn} from '@/lib/utils'
 
+import {useAtom, useAtomValue} from 'jotai'
 import {Home, Plus, Trash2} from 'lucide-react'
 import {useState} from 'react'
 
-interface MeasurementInputsProps {
-  measurements: Measurement[]
-  onChange: (measurements: Measurement[]) => void
-  availableLengths: number[]
-  focusedRoom: string | null
-  onFocusedRoomChange: (room: string | null) => void
-}
+import {
+  availableLengthsAtom,
+  focusedRoomAtom,
+  measurementsAtom,
+} from '../lib/globalState'
 
-export function MeasurementInputs({
-  measurements,
-  onChange,
-  availableLengths,
-  focusedRoom,
-  onFocusedRoomChange,
-}: MeasurementInputsProps) {
+export function MeasurementInputs() {
+  const availableLengths = useAtomValue(availableLengthsAtom)
+  const [measurements, setMeasurements] = useAtom(measurementsAtom)
+  const [focusedRoom, setFocusedRoom] = useAtom(focusedRoomAtom)
+
   // Track which room names are being edited
   const [editingRoomName, setEditingRoomName] = useState<string | null>(null)
   const [newRoomName, setNewRoomName] = useState('')
@@ -87,15 +84,15 @@ export function MeasurementInputs({
 
   const addRoom = () => {
     // Add a new room with one empty measurement
-    onChange([
-      ...measurements,
+    setMeasurements(currentMeasurements => [
+      ...currentMeasurements,
       {id: crypto.randomUUID(), size: 0, room: '', wall: ''},
     ])
   }
 
   const addMeasurementToRoom = (roomName: string) => {
-    onChange([
-      ...measurements,
+    setMeasurements(currentMeasurements => [
+      ...currentMeasurements,
       {id: crypto.randomUUID(), size: 0, room: roomName, wall: ''},
     ])
   }
@@ -105,16 +102,22 @@ export function MeasurementInputs({
       // Keep at least one measurement
       return
     }
-    onChange(measurements.filter(m => m.id !== id))
+    setMeasurements(currentMeasurements =>
+      currentMeasurements.filter(m => m.id !== id)
+    )
   }
 
   const updateMeasurement = (id: string, updates: Partial<Measurement>) => {
-    onChange(measurements.map(m => (m.id === id ? {...m, ...updates} : m)))
+    setMeasurements(currentMeasurements =>
+      currentMeasurements.map(m => (m.id === id ? {...m, ...updates} : m))
+    )
   }
 
   const updateRoomName = (oldName: string, newName: string) => {
-    onChange(
-      measurements.map(m => (m.room === oldName ? {...m, room: newName} : m))
+    setMeasurements(currentMeasurements =>
+      currentMeasurements.map(m =>
+        m.room === oldName ? {...m, room: newName} : m
+      )
     )
     setEditingRoomName(null)
     setNewRoomName('')
@@ -126,14 +129,16 @@ export function MeasurementInputs({
       // Don't remove the last room
       return
     }
-    onChange(measurements.filter(m => m.room !== roomName))
+    setMeasurements(currentMeasurements =>
+      currentMeasurements.filter(m => m.room !== roomName)
+    )
   }
 
   const handleToggleRoom = (roomName: string) => {
     if (focusedRoom === roomName) {
-      onFocusedRoomChange(null)
+      setFocusedRoom(null)
     } else {
-      onFocusedRoomChange(roomName)
+      setFocusedRoom(roomName)
     }
   }
 
