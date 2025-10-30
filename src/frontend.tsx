@@ -1,19 +1,9 @@
-/**
- * This file is the entry point for the React app, it sets up the root
- * element and renders the App component to the DOM.
- *
- * It is included in `src/index.html`.
- */
-
-// Apply dark mode immediately based on system preference to prevent flash
-if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-  document.documentElement.classList.add('dark')
-}
-
+import {Provider as JotaiProvider} from 'jotai'
 import {StrictMode} from 'react'
 import {createRoot} from 'react-dom/client'
 
 import {App} from './App'
+import {store} from './lib/atoms'
 
 const elem = document.getElementById('root')
 
@@ -21,9 +11,16 @@ if (!elem) {
   throw new Error('No root element found!')
 }
 
+// Apply dark mode immediately based on system preference to prevent flash
+if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.documentElement.classList.add('dark')
+}
+
 const app = (
   <StrictMode>
-    <App />
+    <JotaiProvider store={store}>
+      <App />
+    </JotaiProvider>
   </StrictMode>
 )
 

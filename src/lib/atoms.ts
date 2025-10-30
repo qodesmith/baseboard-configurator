@@ -1,6 +1,8 @@
 import type {Measurement} from './utils'
 
-import {atom} from 'jotai'
+import {atom, createStore} from 'jotai'
+
+export const store = createStore()
 
 // Default values
 export const DEFAULT_BOARD_LENGTHS = [8, 10, 12].map(feet => feet * 12)
