@@ -93,9 +93,14 @@ describe('optimizeBaseboards', () => {
 
     const result = optimizeBaseboards(config)
 
-    // large (90) should go first, then medium (50) and small (20) should fit together
-    // Board 1: large (90) - uses 96" board with 6" waste
-    // Board 2: medium (50) + kerf (0.125) + small (20) = 70.125 - uses 96" board
+    /**
+     * large (90) should go first, then medium (50) and small (20) should fit
+     * together.
+     *
+     * Board 1: large (90) - uses 96" board with 6" waste
+     *
+     * Board 2: medium (50) + kerf (0.125) + small (20) = 70.125 - uses 96"
+     */
     expect(result.boards).toHaveLength(2)
 
     // First board should have the largest measurement
@@ -170,11 +175,16 @@ describe('optimizeBaseboards', () => {
 
     const result = optimizeBaseboards(config)
 
-    // With optimization, all measurements can fit in 96" boards more efficiently:
-    // Board 1: wall1 (100) needs 120" (waste: 20")
-    // vs.
-    // Board 1: wall1 (100) alone in 120" OR
-    // Better: Use 96" boards and pack efficiently
+    /**
+     * With optimization, all measurements can fit in 96" boards more
+     * efficiently:
+     *
+     * Board 1: wall1 (100) needs 120" (waste: 20")
+     * vs.
+     * Board 1: wall1 (100) alone in 120" OR
+     *
+     * Better: Use 96" boards and pack efficiently
+     */
     expect(result.summary.totalBoards).toBe(3)
     // The optimizer should choose the configuration with least waste
     const totalBoardsUsed = Object.values(result.summary.boardCounts).reduce(
@@ -200,11 +210,18 @@ describe('optimizeBaseboards', () => {
 
     const result = optimizeBaseboards(config)
 
-    // 132.25 is oversized (> 120, the next available size), so it may be split
-    // Verify all original measurements are accounted for (may result in multiple cuts)
+    /**
+     * 132.25 is oversized (> 120, the next available size), so it may be split.
+     *
+     * Verify all original measurements are accounted for (may result in
+     * multiple cuts)
+     */
     const allCuts = result.boards.flatMap(board => board.cuts)
 
-    // Each measurement ID should be present (oversized ones may appear multiple times)
+    /**
+     * Each measurement ID should be present (oversized ones may appear multiple
+     * times)
+     */
     const uniqueIds = new Set(allCuts.map(cut => cut.id))
     expect(uniqueIds).toContain('bedroom wall 1')
     expect(uniqueIds).toContain('bedroom wall 2')
@@ -255,14 +272,16 @@ describe('optimizeBaseboards', () => {
 
     const result = optimizeBaseboards(config)
 
-    // With optimization, should use 2x144" boards:
-    // Board 1: 60 + 0.125 + 80 = 140.125 (fits in 144" with 3.875" waste)
-    // Board 2: 60 + 0.125 + 80 = 140.125 (fits in 144" with 3.875" waste)
-    // Total: 2 boards, ~7.75" waste
     //
-    // Without optimization, would use 4x96" boards:
-    // 4 separate boards with much more waste (~124" total waste)
-
+    /**
+     * With optimization, should use 2x144" boards:
+     * Board 1: 60 + 0.125 + 80 = 140.125 (fits in 144" with 3.875" * waste)
+     * Board 2: 60 + 0.125 + 80 = 140.125 (fits in 144" with 3.875" * waste)
+     * Total: 2 boards, ~7.75" waste
+     *
+     * Without optimization, would use 4x96" boards:
+     * 4 separate boards with much more waste (~124" total waste)
+     */
     expect(result.boards).toHaveLength(2)
     expect(result.summary.boardCounts).toEqual({144: 2})
     expect(result.summary.totalWaste).toBeCloseTo(7.75, 2)

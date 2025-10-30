@@ -5,6 +5,7 @@ import './index.css'
 
 export function App() {
   useSystemTheme()
+
   return (
     <>
       <BaseboardConfigurator />

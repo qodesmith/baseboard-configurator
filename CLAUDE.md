@@ -68,6 +68,15 @@ Located in `src/components/ui/` - shadcn/ui components with Tailwind styling
 - Use the `cn()` utility function from `src/lib/utils.ts` for conditional classNames
 - `cn()` combines `clsx` and `tailwind-merge` for proper Tailwind class merging
 
+### Code Style Guidelines
+- **Line Length**: Maximum 80 characters per line
+- **Comments**:
+  - Single-line comments ≤80 characters: ALWAYS use `//` syntax - DO NOT convert to JSDoc
+  - Multi-line comments >80 characters: use JSDoc-style `/** */` syntax
+  - Each line in multi-line comments must stay within 80 character limit
+  - Exception: Suppression comments (biome-ignore, @ts-ignore, etc.) can exceed 80 characters and remain single-line
+  - IMPORTANT: Never convert short `//` comments to `/** */` format if the line is ≤80 characters
+
 ## Key Features
 - Real-time optimization as inputs change
 - 1/16" measurement precision

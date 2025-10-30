@@ -9,7 +9,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Generate board display name using letter sequence: A, B, C, ..., Z, AA, AB, ..., AZ, BA, BB, etc.
+ * Generate board display name using letter sequence: A, B, C, ..., Z, AA, AB,
+ * ..., AZ, BA, BB, etc.
+ *
  * @param index Zero-based index of the board
  * @returns Display name like "A", "Z", "AA", "BA", etc.
  */
@@ -165,7 +167,10 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     }
 
     // Helper: handle oversized measurements that need multiple boards
-    // NOTE: This always uses greedy approach - splitEvenly is handled in post-processing
+    /**
+     * NOTE: This always uses greedy approach - splitEvenly is handled in
+     * post-processing
+     */
     const handleOversized = (measurement: Measurement): void => {
       let remaining = measurement.size
 
@@ -213,7 +218,10 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
         continue
       }
 
-      // Find the best existing board (one with least remaining space after adding this cut)
+      /**
+       * Find the best existing board (one with least remaining space after
+       * adding this cut)
+       */
       let bestBoardIndex = -1
       let minRemainingSpace = Infinity
 
@@ -298,7 +306,10 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     bestBoards = allLengthsBoards
   }
 
-  // Strategy 3: Try pairs of board sizes (for up to 4 sizes, to keep it performant)
+  /**
+   * Strategy 3: Try pairs of board sizes (for up to 4 sizes, to keep it
+   * performant)
+   */
   if (sortedLengths.length <= 4) {
     for (let i = 0; i < sortedLengths.length; i++) {
       for (let j = i + 1; j < sortedLengths.length; j++) {
@@ -322,13 +333,19 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     }
   }
 
-  // Post-processing: Apply splitEvenly for oversized measurements
-  // This ensures splitEvenly only affects the specific measurement, not others
+  /**
+   * Post-processing: Apply splitEvenly for oversized measurements
+   *
+   * This ensures splitEvenly only affects the specific measurement, not others
+   */
   const maxBoardLength = sortedLengths.at(-1)
   if (maxBoardLength !== undefined) {
     for (const measurement of measurements) {
       if (measurement.splitEvenly && measurement.size > maxBoardLength) {
-        // Remove cuts for this measurement from all boards, keeping other cuts intact
+        /**
+         * Remove cuts for this measurement from all boards, keeping other
+         * cuts intact
+         */
         for (const board of bestBoards) {
           board.cuts = board.cuts.filter(cut => cut.id !== measurement.id)
         }
@@ -339,7 +356,10 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
         // Calculate balanced splits
         const splits = calculateBalancedSplits(measurement.size, maxBoardLength)
 
-        // Re-optimize each split piece into the existing solution using bin-packing
+        /**
+         * Re-optimize each split piece into the existing solution using
+         * bin-packing
+         */
         for (const splitSize of splits) {
           const splitCut: Cut = {
             id: measurement.id,
@@ -399,7 +419,10 @@ export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
     }
   }
 
-  // Post-processing: Optimize board sizes by downgrading to smaller lengths when possible
+  /**
+   * Post-processing: Optimize board sizes by downgrading to smaller lengths
+   * when possible
+   */
   for (const board of bestBoards) {
     const currentUsed = calculateUsed(board.cuts)
 

@@ -1,8 +1,9 @@
 import {useEffect} from 'react'
 
 /**
- * Hook that synchronizes the document's dark mode class with the system theme preference.
- * Listens for changes to the system theme and updates the 'dark' class on the HTML element.
+ * Hook that synchronizes the document's dark mode class with the system theme
+ * preference. Listens for changes to the system theme and updates the 'dark'
+ * class on the HTML element.
  */
 export function useSystemTheme() {
   useEffect(() => {
