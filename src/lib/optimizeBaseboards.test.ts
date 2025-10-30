@@ -14,6 +14,7 @@ describe('optimizeBaseboards', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'wall1', size: 50}],
       availableLengths: [96, 120, 144],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -69,6 +70,7 @@ describe('optimizeBaseboards', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'long-wall', size: 200}],
       availableLengths: [96, 120],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -176,6 +178,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall3', size: 60},
       ],
       availableLengths: [96, 120],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -243,6 +246,7 @@ describe('optimizeBaseboards', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'extremely-long-wall', size: 350}],
       availableLengths: [96, 120, 144],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -300,6 +304,7 @@ describe('optimizeBaseboards', () => {
     const config: BaseboardConfig = {
       measurements: [],
       availableLengths: [96, 120],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -314,6 +319,7 @@ describe('optimizeBaseboards', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'wall1', size: 50}],
       availableLengths: [],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -331,6 +337,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall2', size: 40, room: 'Bedroom', wall: 'South'},
       ],
       availableLengths: [96],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -364,6 +371,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall3', size: 80},
       ],
       availableLengths: [96],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -378,6 +386,7 @@ describe('optimizeBaseboards', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'wall1', size: 70}],
       availableLengths: [96, 120, 144],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -436,6 +445,7 @@ describe('optimizeBaseboards', () => {
         {id: 'normal-wall', size: 50},
       ],
       availableLengths: [96, 120],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -459,6 +469,7 @@ describe('optimizeBaseboards', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'long-wall', size: 200, splitEvenly: false}],
       availableLengths: [96, 120],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -482,6 +493,7 @@ describe('optimizeBaseboards', () => {
         {id: 'wall3', size: 50},
       ],
       availableLengths: [96, 120],
+      kerf: 0.125,
     }
 
     const result = optimizeBaseboards(config)
@@ -530,6 +542,7 @@ describe('optimizeBaseboards', () => {
     const config: BaseboardConfig = {
       measurements: [{id: 'exact-fit', size: 96}],
       availableLengths: [96, 120],
+      kerf: 0,
     }
 
     const result = optimizeBaseboards(config)

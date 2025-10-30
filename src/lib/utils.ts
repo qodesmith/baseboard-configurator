@@ -4,8 +4,6 @@ import {clsx} from 'clsx'
 import {toast} from 'sonner'
 import {twMerge} from 'tailwind-merge'
 
-import {DEFAULT_KERF} from './globalState'
-
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -41,7 +39,7 @@ export interface Measurement {
 export interface BaseboardConfig {
   measurements: Measurement[]
   availableLengths: number[]
-  kerf?: number
+  kerf: number
 }
 
 export interface Cut {
@@ -137,7 +135,7 @@ export function calculateSummaryStats(
 }
 
 export function optimizeBaseboards(config: BaseboardConfig): BaseboardResult {
-  const {measurements, availableLengths, kerf = DEFAULT_KERF} = config
+  const {measurements, availableLengths, kerf} = config
 
   if (availableLengths.length === 0) {
     toast.error('No available board lengths provided')
